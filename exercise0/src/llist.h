@@ -1,7 +1,7 @@
-struct ListElement 
+struct ListElement
 {
-	int value;
-	struct ListElement *next;
+    int value;
+    struct ListElement *next;
 };
 
 typedef struct ListElement ListElement;
@@ -19,7 +19,7 @@ ListElement* removeElement(ListElement *list, int pos);
 
 ListElement* reverse(ListElement *list);
 
-ListElement* getElement(int pos);
+ListElement* getElement(ListElement *list, int pos);
 
 void print(ListElement *list);
 
