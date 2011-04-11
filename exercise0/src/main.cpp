@@ -1,3 +1,7 @@
+/*
+ * Copyright 2011 by martinp.dev@googlemail.com
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>

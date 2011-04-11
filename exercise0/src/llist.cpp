@@ -1,4 +1,8 @@
-m#include <stdio.h>
+/*
+ * Copyright 2011 by martinp.dev@googlemail.com
+ */
+
+#include <stdio.h>
 #include <stdlib.h>
 #include "llist.h"
 
