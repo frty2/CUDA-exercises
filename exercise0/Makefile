@@ -1,17 +1,28 @@
-TARGET := exercise0
+TARGET := listtest
+
+OBJDIR := obj
+TARGETDIR := bin
+SRCDIR := src
+
 CXX := gcc -g -O2
 LNK := gcc
-OBJ := obj/llist.o obj/main.o
 
+OBJ := $(OBJDIR)/llist.o $(OBJDIR)/main.o
 
-obj/%.o: src/%.cpp
+$(OBJDIR)/%.o: $(SRCDIR)/%.cpp
 	$(CXX) -c $< -o $@
 
 all:
+	mkdir -p $(OBJDIR)/
+	mkdir -p $(TARGETDIR)/
 	make test
 
 test: $(OBJ)
-	$(LNK) -o bin/$(TARGET) $^
+	$(LNK) -o $(TARGETDIR)/$(TARGET) $^
 
 clean:
-	rm -f obj/*.o
+	rm -fR $(OBJDIR)/
+	rm -fR $(TARGETDIR)/
+
+start:
+	./$(TARGETDIR)/$(TARGET)
