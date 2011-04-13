@@ -12,7 +12,7 @@ ListElement* addStart(ListElement *list, int val)
     element->value = val;
     element->next = list;
 
-	return element;
+    return element;
 }
 
 ListElement* addEnd(ListElement *list, int val)
@@ -46,7 +46,6 @@ ListElement* add(ListElement *list, int pos, int val)
     {
         return list;
     }
-
 
     //Start a new List
     if(list == NULL)

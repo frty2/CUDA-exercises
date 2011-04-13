@@ -8,9 +8,9 @@
 
 #include "llist.h"
 
-ListElement* createOneElementedList(ListElement *list, int value)
+ListElement* createOneElementedList(int value)
 {
-    return addStart(list, value);
+    return addStart(NULL, value);
 }
 
 ListElement* generateNRandomList(int n)
@@ -73,9 +73,8 @@ int main(int argc, char **argv)
         printf("Use './listtest n'. Setting n = %d as default\n", n);
     }
 
-    ListElement *list;
+    ListElement *list = createOneElementedList(42);
 
-    list = createOneElementedList(list, 42);
     print(list);
     freeList(list);
 
