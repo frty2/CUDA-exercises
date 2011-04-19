@@ -1,0 +1,6 @@
+cmake_minimum_required(VERSION 2.8)
+project(example1)
+INCLUDE(FindCUDA)
+set(CUDA_NVCC_FLAGS "-arch=sm_20")
+find_package(CUDA REQUIRED)
+cuda_add_executable(bin/emptykernel src/emptykernel.cu)
