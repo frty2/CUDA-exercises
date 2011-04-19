@@ -1,0 +1,8 @@
+Beispiele compiliert und ./deviceQuery gestartet und Bildschirminhalt gelesen
+
+There is 1 device supporting CUDA
+
+Device 0: "Tesla C2050"
+  CUDA Capability Major/Minor version number:    2.0
+  Total amount of global memory:                 2817720320 bytes
+  Multiprocessors x Cores/MP = Cores:            14 (MP) x 32 (Cores/MP) = 448 (Cores)
