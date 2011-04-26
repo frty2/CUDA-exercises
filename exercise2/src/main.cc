@@ -1,7 +1,7 @@
 //#define GOOGLE_STRIP_LOG 2
 #include <glog/logging.h>
 #include <gflags/gflags.h>
-
+#include <stdlib.h>
 #include <fstream>
 
 #include "types.h"

@@ -4,8 +4,8 @@ OBJDIR := obj
 TARGETDIR := bin
 SRCDIR := src
 
-CXX := gcc -g -O2
-LNK := gcc
+CXX := g++ -g -O2
+LNK := g++
 
 OBJ := $(OBJDIR)/llist.o $(OBJDIR)/main.o
 

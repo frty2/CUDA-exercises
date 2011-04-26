@@ -5,6 +5,7 @@
 #include <string>
 #include <iostream>
 #include <map>
+#include <stdlib.h>
 
 #include "parser.h"
 #include "raytracer.h"
