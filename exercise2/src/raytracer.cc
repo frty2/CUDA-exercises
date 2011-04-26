@@ -168,9 +168,6 @@ void render_image(const scene& s, const int& height, const int& width, rgb* imag
         {
             ray r;
             initial_ray(s.cam, x, y, xgap, ygap, r);
-
-			std::cout << r;
-			
             //find nearest intersect triangle
             triangle nearest;
             double max_distance = DBL_MAX;
