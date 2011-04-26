@@ -1,0 +1,30 @@
+############################################
+#include <stdio.h>
+
+__global__ void emptyKernel()
+{
+
+}
+
+int main()
+{
+	cudaError err;
+	dim3 threadsPerBlock(1 ,0);
+    dim3 blocksPerGrid(1);
+
+	emptyKernel<<<blocksPerGrid, threadsPerBlock>>>();
+	if(cudaSuccess != (err = cudaGetLastError()))
+		printf("%s\n", cudaGetErrorString( err ));
+	return 0;
+}
+############################################
+
+Mein Programm um den Kernel zum Absturz zu bringen.
+
+Er stürzt ab, da eine Dimension 0 ist und der Kernel damit keine "Ausdehnung" hat.
+
+Weitere Gründe für den Absturz:
+
+- Keine Karte vorhanden oder Kartentreiber nicht installiert
+- Dimensionen für Blockgröße zu groß
+- Zu wenig global oder shared Memory auf der Karte vorhanden
