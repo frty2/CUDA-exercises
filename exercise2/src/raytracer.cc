@@ -72,10 +72,10 @@ point operator-(const point& left, const point& right)
 
 bool intersect(const point& location, const point& direction, const point& normal, const point& p, point& intersection)
 {
-	double t = (dot(normal, p-location)) * (1.0/dot(normal,direction));
+	double t = (dot(normal, p-location)) / (dot(normal,direction));
 	
     //wrong direction
-    if(t <= 0)
+    if(t < 0)
     {
         return false;
     }
