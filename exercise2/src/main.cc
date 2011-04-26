@@ -47,22 +47,22 @@ int main(int argc, char **argv)
     // this is our height and width
     int width = FLAGS_width;
     int height = FLAGS_height;
-    
+
     // changed to dynamic array to get more pixels
-	rgb *image;
-	
-	image = (rgb*) malloc(width*height*sizeof(rgb));
-	if(! image)
-	{
-		std::cout << "Not enough memory for image" << std::endl;
-		return -1;
-	}
- 	// render the scene
+    rgb *image;
+
+    image = (rgb*) malloc(width*height*sizeof(rgb));
+    if(! image)
+    {
+        std::cout << "Not enough memory for image" << std::endl;
+        return -1;
+    }
+    // render the scene
     render_image(s, height, width, image);
 
     // write image to filename
     write_ppm(image, width, height, argv[2]);
 
-  
+
     return 0;
 }

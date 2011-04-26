@@ -72,18 +72,15 @@ point operator-(const point& left, const point& right)
 
 bool intersect(const point& location, const point& direction, const point& normal, const point& p, point& intersection)
 {
-	double t = (dot(normal, p-location)) / (dot(normal,direction));
-	
+    double t = dot(normal, p-location) / dot(normal,direction);
+
     //wrong direction
     if(t < 0)
     {
         return false;
     }
 
-    intersection.x = location.x + t * direction.x;
-    intersection.y = location.y + t * direction.y;
-    intersection.z = location.z + t * direction.z;
-	
+    intersection = location+t*direction;
     return true;
 }
 
@@ -101,7 +98,7 @@ bool inside(const point& p, const point& c, const point& a, const point& b)
 }
 
 bool intersect(const ray& r, const triangle& t, point& intersection)
-{  
+{
     //calc intersection with triangle surface
     if(!intersect(r.location, r.direction, t.norm, t.A, intersection))
     {
@@ -118,11 +115,11 @@ bool intersect(const ray& r, const triangle& t, point& intersection)
 
 void initial_ray(const camera& c, int x, int y, point& xgap, point& ygap, ray& r)
 {
-	//place the ray in the middle of the hole (not top left)
+    //place the ray in the middle of the hole (not top left)
     point p = c.upperleft + (x+0.5) * xgap - (y+0.5) * ygap;
     r.location = p;
-	r.direction = p-c.location;
-	normalize(r.direction);
+    r.direction = p-c.location;
+    normalize(r.direction);
 }
 
 void init_ray_gap(const camera& c, int width, int height, point &xgap, point &ygap)
@@ -137,8 +134,8 @@ void init_ray_gap(const camera& c, int width, int height, point &xgap, point &yg
 
 
     point down = -1*c.up;
-	normalize(down);
-	
+    normalize(down);
+
     intersect(c.upperleft, right, right, pic_center, pic_center_top);
 
     xgap = (pic_center_top-c.upperleft)*(2.0/width);
@@ -148,19 +145,19 @@ void init_ray_gap(const camera& c, int width, int height, point &xgap, point &yg
 //calculates the norm for every triangle
 void init_norms(const scene& s)
 {
-	for(int i = 0;i < s.objects.count;i++)
-	{
-		triangle t = s.objects.triangles[i];
-		t.norm = cross(t.A - t.C, t.A - t.B);
-	    normalize( t.norm );
-		s.objects.triangles[i].norm = t.norm;
-	}
+    for(int i = 0; i < s.objects.count; i++)
+    {
+        triangle t = s.objects.triangles[i];
+        t.norm = cross(t.A - t.C, t.A - t.B);
+        normalize( t.norm );
+        s.objects.triangles[i].norm = t.norm;
+    }
 }
 
 void render_image(const scene& s, const int& height, const int& width, rgb* image)
 {
-	init_norms(s);
-	
+    init_norms(s);
+
     point xgap, ygap;
     init_ray_gap(s.cam, width, height, xgap, ygap);
 
