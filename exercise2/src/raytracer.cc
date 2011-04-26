@@ -2,8 +2,9 @@
 #include <cmath>
 #include "float.h"
 #include "raytracer.h"
+#include <iostream>
 
-#define EPSILON 5e-12
+#define EPSILON 5e-4
 
 point cross(const point& p1, const point& p2)
 {
@@ -71,18 +72,18 @@ point operator-(const point& left, const point& right)
 
 bool intersect(const point& location, const point& direction, const point& normal, const point& p, point& intersection)
 {
-    double distance = dot((p-location), normal);
-
+	double t = (dot(normal, p-location)) * (1.0/dot(normal,direction));
+	
     //wrong direction
-    if(distance < 0)
+    if(t <= 0)
     {
         return false;
     }
 
-    intersection.x = location.x + distance * direction.x;
-    intersection.y = location.y + distance * direction.y;
-    intersection.z = location.z + distance * direction.z;
-
+    intersection.x = location.x + t * direction.x;
+    intersection.y = location.y + t * direction.y;
+    intersection.z = location.z + t * direction.z;
+	
     return true;
 }
 
@@ -100,13 +101,9 @@ bool inside(const point& p, const point& c, const point& a, const point& b)
 }
 
 bool intersect(const ray& r, const triangle& t, point& intersection)
-{
-    //surface normal of the triangle
-    point n = cross(t.A - t.C, t.A - t.B);
-    normalize(n);
-
+{  
     //calc intersection with triangle surface
-    if(!intersect(r.location, r.direction, n, t.A, intersection))
+    if(!intersect(r.location, r.direction, t.norm, t.A, intersection))
     {
         return false;
     }
@@ -121,9 +118,11 @@ bool intersect(const ray& r, const triangle& t, point& intersection)
 
 void initial_ray(const camera& c, int x, int y, point& xgap, point& ygap, ray& r)
 {
+	//place the ray in the middle of the hole (not top left)
     point p = c.upperleft + (x+0.5) * xgap - (y+0.5) * ygap;
     r.location = p;
-    r.direction = p-c.location;
+	r.direction = p-c.location;
+	normalize(r.direction);
 }
 
 void init_ray_gap(const camera& c, int width, int height, point &xgap, point &ygap)
@@ -135,20 +134,33 @@ void init_ray_gap(const camera& c, int width, int height, point &xgap, point &yg
     normalize(right);
 
     point pic_center_top;
-    point pic_center_left;
 
 
     point down = -1*c.up;
-
+	normalize(down);
+	
     intersect(c.upperleft, right, right, pic_center, pic_center_top);
-    intersect(c.upperleft, down, down, pic_center, pic_center_left);
 
     xgap = (pic_center_top-c.upperleft)*(2.0/width);
-    ygap = (c.upperleft-pic_center_left)*(2.0/height);
+    ygap = (pic_center_top-pic_center)*(2.0/height);
+}
+
+//calculates the norm for every triangle
+void init_norms(const scene& s)
+{
+	for(int i = 0;i < s.objects.count;i++)
+	{
+		triangle t = s.objects.triangles[i];
+		t.norm = cross(t.A - t.C, t.A - t.B);
+	    normalize( t.norm );
+		s.objects.triangles[i].norm = t.norm;
+	}
 }
 
 void render_image(const scene& s, const int& height, const int& width, rgb* image)
 {
+	init_norms(s);
+	
     point xgap, ygap;
     init_ray_gap(s.cam, width, height, xgap, ygap);
 
@@ -175,6 +187,7 @@ void render_image(const scene& s, const int& height, const int& width, rgb* imag
                     max_distance = distance;
                 }
             }
+
 
             if(max_distance == DBL_MAX)
             {

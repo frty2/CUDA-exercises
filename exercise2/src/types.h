@@ -23,6 +23,7 @@ struct triangle
     point A;
     point B;
     point C;
+	point norm;
     rgb color;
 };
 
