@@ -1,0 +1,30 @@
+# a simple scene
+
+# colors
+color: &red 
+ [255, 0, 0]
+color: &green
+ [0, 255, 0]
+color: &blue
+ [0, 0, 255]
+color: &white
+   [255, 255, 255]
+
+# background
+background: *white
+
+# all primitives
+primitives:
+- triangle: [[10, 0, 1], [0, 0, 1], [0, 0, 10]]
+  color: *red
+- triangle: [[10, 0, 10], [0, 0, 10], [10, 0, 1]]
+  color: *blue
+- triangle: [[0, 0, 10], [0, 10, 1], [0, 0, 1]]
+  color: *green
+
+# camera
+camera:
+  location:   [5, 5, -10]
+  direction:  [0, 0, 1]
+  up:         [0, 1, 0]
+  upper_left: [0, 10, 1]
