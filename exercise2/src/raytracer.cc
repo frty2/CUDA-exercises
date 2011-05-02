@@ -177,7 +177,7 @@ void render_image(const scene& s, const int& height, const int& width, rgb* imag
                 point intersec;
                 bool hit = intersect(r, s.objects.triangles[i], intersec);
                 float distance = norm(s.cam.location - intersec);
-                if(hit && distance < max_distance && distance > 0)
+                if(hit && distance < max_distance && distance >= 0)
                 {
                     nearest = s.objects.triangles[i];
                     max_distance = distance;

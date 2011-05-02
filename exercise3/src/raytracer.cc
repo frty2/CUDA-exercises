@@ -4,7 +4,7 @@
 #include "raytracer.h"
 #include <iostream>
 
-#define EPSILON 5e-4
+#define EPSILON 1e-5
 #define PI 3.14159265358979323846
 
 point cross(const point& p1, const point& p2)
@@ -125,27 +125,21 @@ void initial_ray(const camera& c, const point& upperleft, int x, int y, point& x
 
 void init_ray_gap(const camera& c, int width, int height, point &xgap, point &ygap, point& upperleft)
 {
-	point left = cross(c.direction, c.up);
-	normalize(left);
-	point right = -1*left;
-	
-	point dx = tan(c.hor_angle/2*PI/180) * norm(c.direction) * left;
-	point dy = tan(c.vert_angle/2*PI/180) * norm(c.direction) * c.up;
-	point pic_center = c.location + c.direction;
-	
-	upperleft = c.location + c.direction + dx + dy ;
-    
+    point left = cross(c.direction, c.up);
+    normalize(left);
 
-    point pic_center_top;
-
+    point right = -1*left;
 
     point down = -1*c.up;
     normalize(down);
 
-    intersect(upperleft, right, right, pic_center, pic_center_top);
+    point dx = tan(c.hor_angle/2*PI/180) * c.distance * left;
+    point dy = tan(c.vert_angle/2*PI/180) * c.distance * c.up;
 
-    xgap = (pic_center_top-upperleft)*(2.0/width);
-    ygap = (pic_center_top-pic_center)*(2.0/height);
+    upperleft = c.location + c.direction + dx + dy ;
+
+    xgap = dx*(2.0/width);
+    ygap = dy*(2.0/height);
 }
 
 //calculates the norm for every triangle
@@ -182,8 +176,8 @@ void render_image(const scene& s, const int& height, const int& width, rgb* imag
             {
                 point intersec;
                 bool hit = intersect(r, s.objects.triangles[i], intersec);
-                float distance = norm(s.cam.location - intersec);
-                if(hit && distance < max_distance && distance > 0)
+                float distance = norm(r.location - intersec);
+                if(hit && distance < max_distance && distance >= 0)
                 {
                     nearest = s.objects.triangles[i];
                     max_distance = distance;

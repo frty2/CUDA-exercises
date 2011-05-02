@@ -19,9 +19,14 @@ void operator >>(const YAML::Node& node, point& v)
 
 void operator >>(const YAML::Node& node, rgb& r)
 {
-    node[0] >> r.red;
-    node[1] >> r.green;
-    node[2] >> r.blue;
+    int rt,gt,bt;
+
+    node[0] >> rt;
+    r.red = rt;
+    node[1] >> gt;
+    r.green = gt;
+    node[2] >> bt;
+    r.blue = bt;
 }
 
 void operator >>(const YAML::Node& node, triangle& t)
@@ -67,11 +72,15 @@ void operator >>(const YAML::Node& node, camera& c)
     {
         *pValue >> c.up;
     }
+    if(const YAML::Node *pValue = node.FindValue("distance"))
+    {
+        *pValue >> c.distance;
+    }
     if(const YAML::Node *pValue = node.FindValue("horizontal_angle"))
     {
         *pValue >> c.hor_angle;
     }
-	if(const YAML::Node *pValue = node.FindValue("vertical_angle"))
+    if(const YAML::Node *pValue = node.FindValue("vertical_angle"))
     {
         *pValue >> c.vert_angle;
     }
@@ -82,12 +91,13 @@ void parse_scene(const char* filename, scene& s)
     std::ifstream fin(filename);
     YAML::Parser parser(fin);
     YAML::Node doc;
-    //std::cout << doc << std::endl;
-    parser.GetNextDocument(doc);
-
-    find_primitives(doc, s.objects);
-    find_camera(doc, s.cam);
-    find_background(doc, s.background);
+    while(parser.GetNextDocument(doc))
+    {
+        find_primitives(doc, s.objects);
+        find_camera(doc, s.cam);
+        find_background(doc, s.background);
+    }
+    fin.close();
 }
 
 void find_primitives(const YAML::Node& node, primitives& p)

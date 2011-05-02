@@ -13,9 +13,9 @@ struct point
 
 struct rgb
 {
-    int red;
-    int green;
-    int blue;
+    unsigned char red;
+    unsigned char green;
+    unsigned char blue;
 };
 
 struct triangle
@@ -38,8 +38,9 @@ struct camera
     point location;
     point direction;
     point up;
-	double hor_angle;
-	double vert_angle;
+    double distance;
+    double hor_angle;
+    double vert_angle;
 };
 
 struct ray

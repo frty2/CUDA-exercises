@@ -9,6 +9,10 @@
 #include "raytracer.h"
 #include "ppm_writer.h"
 
+#if __GPUVERSION__
+#include "copyprimitives.h"
+#endif
+
 static bool validateWidthAndHeight(const char* flagname, int value)
 {
     if (value > 0 && value < 32768)
@@ -57,6 +61,9 @@ int main(int argc, char **argv)
         std::cout << "Not enough memory for image" << std::endl;
         return -1;
     }
+#if __GPUVERSION__
+    copyPrimitives();
+#endif
     // render the scene
     render_image(s, height, width, image);
 

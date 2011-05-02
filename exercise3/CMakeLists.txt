@@ -15,12 +15,25 @@ include_directories(${GFLAGS_INCLUDE_DIR})
 find_package(YAMLCPP REQUIRED)
 include_directories(${YAMLCPP_INCLUDE_DIR})
 
+INCLUDE(FindCUDA)
+find_package(CUDA REQUIRED)
+message (STATUS ${CMAKE_CUDA_IGNORE_EXTENSIONS})
+
 include_directories("src")
 
-add_executable(rt src/main.cc src/parser.cc src/raytracer.cc src/ppm_writer.cc src/types.cc)
-target_link_libraries(rt ${GLOG_LIBRARY})
-target_link_libraries(rt ${GFLAGS_LIBRARY})
-target_link_libraries(rt ${YAMLCPP_LIBRARY})
+#cpu version
+add_executable(rtcpu src/main.cc src/parser.cc src/raytracer.cc src/ppm_writer.cc src/types.cc)
+set_target_properties(rtcpu PROPERTIES COMPILE_FLAGS "-D__CPUVERSION__")
+target_link_libraries(rtcpu ${GLOG_LIBRARY})
+target_link_libraries(rtcpu ${GFLAGS_LIBRARY})
+target_link_libraries(rtcpu ${YAMLCPP_LIBRARY})
+
+#cuda version
+cuda_add_executable(rtgpu src/main.cc src/parser.cc src/raytracer.cc src/ppm_writer.cc src/types.cc src/copyprimitives.cu OPTIONS "-D__GPUVERSION__")
+set_target_properties(rtgpu PROPERTIES COMPILE_FLAGS "-D__GPUVERSION__")
+target_link_libraries(rtgpu ${GLOG_LIBRARY})
+target_link_libraries(rtgpu ${GFLAGS_LIBRARY})
+target_link_libraries(rtgpu ${YAMLCPP_LIBRARY})
 
 # common flags
 SET(CMAKE_CXX_FLAGS "-Wall -Wno-unknown-pragmas -Wno-long-long -Wno-variadic-macros")
