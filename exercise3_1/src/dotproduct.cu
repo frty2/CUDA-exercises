@@ -6,12 +6,13 @@
 
 typedef float3 vector;
 
-__global__ void dot(vector *A, vector *B, float *C)
+__global__ void dotproduct(vector *A, vector *B, float *C)
 {
-	int threadid = threadIdx.x + blockIdx.x*blockDim.x;
-	if(threadid < itemcount){
-		C[threadid] = 97;//A[threadid].x*B[threadid].x + A[threadid].y*B[threadid].y + A[threadid].z*B[threadid].z;
-	}
+	C[0] = 1337;
+//	int threadid = threadIdx.x + blockIdx.x*blockDim.x;
+	//if(threadid < itemcount){
+	//	C[threadid] = 97;//A[threadid].x*B[threadid].x + A[threadid].y*B[threadid].y + A[threadid].z*B[threadid].z;
+	//}
 }
 
 int main()
@@ -30,6 +31,7 @@ int main()
 		std::cout << "Not enough memory on host" << std::endl;
 		return -1;
 	}
+	
 	vector *deviceA;vector *deviceB;float *deviceC;
 	cudaMalloc(&deviceA, vecsize);
 	cudaMalloc(&deviceB, vecsize);
@@ -57,18 +59,37 @@ int main()
 	error = cudaMemcpy(deviceB, B, vecsize, cudaMemcpyHostToDevice);
 	if(cudaSuccess != error) std::cout << "Error: " << cudaGetErrorString(error);
 	
+	cudaEvent_t start, stop;
+	float elapsedTime;
 	
-	dim3 threadsPerBlock(1024);
-	dim3 blocksPerGrid(1024);
-	dot<<<blocksPerGrid, threadsPerBlock>>>(deviceA,deviceB,deviceC);
+	
+	for(int i = 0;i <= 10;i++){
+		int threads = 1 << i;
+		int blocks = (itemcount+threads-1)/threads;
+		std::cout << "Threads per block: " << threads << std::endl;
+		std::cout << "Blocks per Grid: " << blocks << std::endl;
+		dim3 threadsPerBlock(threads);
+		dim3 blocksPerGrid(blocks);
+		cudaEventCreate(&start);
+		cudaEventCreate(&stop);
+		cudaEventRecord(start, 0);
+		dotproduct<<<blocksPerGrid, threadsPerBlock>>>(deviceA,deviceB,deviceC);
+		cudaThreadSynchronize();
+		cudaEventRecord(stop, 0);
+		cudaEventSynchronize(stop);
+		cudaEventElapsedTime(&elapsedTime, start, stop);
+
+		cudaEventDestroy(start);
+		cudaEventDestroy(stop);
+		std::cout << elapsedTime << " ms elapsed for executing kernel" << std::endl;
+		std::cout << std::endl;
+	}
+	
 	
 	cudaThreadSynchronize();
 	
 	error = cudaMemcpy(C, deviceC, fltsize, cudaMemcpyDeviceToHost);
 	if(cudaSuccess != error) std::cout << "Error: " << cudaGetErrorString(error);
-
-	std::cout << C[0] << std::endl;
-	std::cout << C[56] << std::endl;
 	
 	cudaFree(deviceA);
 	cudaFree(deviceB);

@@ -6,12 +6,14 @@
 
 void copyPrimitives(const primitives &objects)
 {
-    std::cout << "copying primitives" << std::endl;
+    std::cout << "copying primitives to devices" << std::endl;
 	cudaEvent_t start, stop;
+	float elapsedTime;
 	cudaEventCreate(&start);
 	cudaEventCreate(&stop);
 	
 	cudaError_t error;
+	
 	triangle *deviceobjects;
 	size_t sizeinbytes = objects.count*sizeof(triangle);
 	
@@ -23,7 +25,7 @@ void copyPrimitives(const primitives &objects)
 	CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
 	cudaEventRecord(stop, 0);
 	cudaEventSynchronize(stop);
-	float elapsedTime;
+
 	cudaEventElapsedTime(&elapsedTime, start, stop);
 	
 	cudaEventDestroy(start);
