@@ -19,11 +19,11 @@ void write_ppm(rgb* pixelarray, int width, int height, char* filename)
             //(3 chars per color + 1 spacing) * 3 colors * 5 pixel = 60 pixel
             if(++i % 5 == 0)
             {
-                file << pixelarray[pos].red << " " << pixelarray[pos].green << " " << pixelarray[pos].blue << std::endl;
+                file << (int)pixelarray[pos].red << " " << (int)pixelarray[pos].green << " " << (int)pixelarray[pos].blue << std::endl;
             }
             else
             {
-                file << pixelarray[pos].red << " " << pixelarray[pos].green << " " << pixelarray[pos].blue << " ";
+                file << (int)pixelarray[pos].red << " " << (int)pixelarray[pos].green << " " << (int)pixelarray[pos].blue << " ";
             }
         }
     }

@@ -15,9 +15,8 @@ include_directories(${GFLAGS_INCLUDE_DIR})
 find_package(YAMLCPP REQUIRED)
 include_directories(${YAMLCPP_INCLUDE_DIR})
 
-INCLUDE(FindCUDA)
 find_package(CUDA REQUIRED)
-message (STATUS ${CMAKE_CUDA_IGNORE_EXTENSIONS})
+include_directories(${CUDA_INCLUDE_DIRS})
 
 include_directories("src")
 

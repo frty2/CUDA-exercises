@@ -1,3 +1,5 @@
 #pragma once
 
-void copyPrimitives();
+#include "types.h"
+
+void copyPrimitives(const primitives &objects);

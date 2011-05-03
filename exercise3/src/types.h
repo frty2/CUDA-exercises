@@ -2,15 +2,18 @@
 
 #include <vector>
 #include <iostream>
+#include "vector_types.h"
 
-// define structs
+typedef float3 point;
+/*
 struct point
 {
-    double x;
-    double y;
-    double z;
+    float x;
+    float y;
+    float z;
 };
-
+typedef struct point point;
+*/
 struct rgb
 {
     unsigned char red;
@@ -57,7 +60,6 @@ struct scene
 };
 
 // define types
-typedef struct point point;
 typedef struct rgb rgb;
 typedef struct triangle triangle;
 typedef struct primitives primitives;

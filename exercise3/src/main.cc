@@ -62,7 +62,7 @@ int main(int argc, char **argv)
         return -1;
     }
 #if __GPUVERSION__
-    copyPrimitives();
+    copyPrimitives(s.objects);
 #endif
     // render the scene
     render_image(s, height, width, image);

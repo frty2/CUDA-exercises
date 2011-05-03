@@ -25,7 +25,6 @@ camera:
   location:   [5, 5, 0]
   direction:  [0, 0, 1]
   up:         [0, 1, 0]
-  #horizontal_angle:  157.38014
   distance: 1
   horizontal_angle:  157.38014
   vertical_angle:    157.38014

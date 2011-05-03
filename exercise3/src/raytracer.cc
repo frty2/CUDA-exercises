@@ -133,10 +133,13 @@ void init_ray_gap(const camera& c, int width, int height, point &xgap, point &yg
     point down = -1*c.up;
     normalize(down);
 
-    point dx = tan(c.hor_angle/2*PI/180) * c.distance * left;
+    point dx = tan(c.hor_angle/2*PI/180) * c.distance * right;
     point dy = tan(c.vert_angle/2*PI/180) * c.distance * c.up;
 
-    upperleft = c.location + c.direction + dx + dy ;
+	point dir = c.direction;
+	normalize(dir);
+	dir = dir*c.distance;
+    upperleft = c.location + dir - dx + dy ;
 
     xgap = dx*(2.0/width);
     ygap = dy*(2.0/height);
@@ -160,8 +163,8 @@ void render_image(const scene& s, const int& height, const int& width, rgb* imag
 
     point xgap, ygap, upperleft;
     init_ray_gap(s.cam, width, height, xgap, ygap, upperleft);
-
     int x,y;
+
     for(y = 0; y < height; y++)
     {
         for(x = 0; x < width; x++)
@@ -177,7 +180,8 @@ void render_image(const scene& s, const int& height, const int& width, rgb* imag
                 point intersec;
                 bool hit = intersect(r, s.objects.triangles[i], intersec);
                 float distance = norm(r.location - intersec);
-                if(hit && distance < max_distance && distance >= 0)
+
+                if(hit && distance < max_distance && distance >= -EPSILON)
                 {
                     nearest = s.objects.triangles[i];
                     max_distance = distance;
