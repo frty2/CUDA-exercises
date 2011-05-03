@@ -136,9 +136,9 @@ void init_ray_gap(const camera& c, int width, int height, point &xgap, point &yg
     point dx = tan(c.hor_angle/2*PI/180) * c.distance * right;
     point dy = tan(c.vert_angle/2*PI/180) * c.distance * c.up;
 
-	point dir = c.direction;
-	normalize(dir);
-	dir = dir*c.distance;
+    point dir = c.direction;
+    normalize(dir);
+    dir = dir*c.distance;
     upperleft = c.location + dir - dx + dy ;
 
     xgap = dx*(2.0/width);

@@ -7,28 +7,28 @@
 void copyPrimitives(const primitives &objects)
 {
     std::cout << "copying primitives to devices" << std::endl;
-	cudaEvent_t start, stop;
-	float elapsedTime;
-	cudaEventCreate(&start);
-	cudaEventCreate(&stop);
-	
-	cudaError_t error;
-	
-	triangle *deviceobjects;
-	size_t sizeinbytes = objects.count*sizeof(triangle);
-	
-	error = cudaMalloc(&deviceobjects, sizeinbytes);
-	CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
-	
-	cudaEventRecord(start, 0);
-	error = cudaMemcpy(deviceobjects, objects.triangles, sizeinbytes, cudaMemcpyHostToDevice);
-	CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
-	cudaEventRecord(stop, 0);
-	cudaEventSynchronize(stop);
+    cudaEvent_t start, stop;
+    float elapsedTime;
+    cudaEventCreate(&start);
+    cudaEventCreate(&stop);
 
-	cudaEventElapsedTime(&elapsedTime, start, stop);
-	
-	cudaEventDestroy(start);
-	cudaEventDestroy(stop);
-	std::cout << elapsedTime << " ms elapsed for copy operation" << std::endl;
+    cudaError_t error;
+
+    triangle *deviceobjects;
+    size_t sizeinbytes = objects.count*sizeof(triangle);
+
+    error = cudaMalloc(&deviceobjects, sizeinbytes);
+    CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
+
+    cudaEventRecord(start, 0);
+    error = cudaMemcpy(deviceobjects, objects.triangles, sizeinbytes, cudaMemcpyHostToDevice);
+    CHECK_EQ(cudaSuccess, error) << "Error: " << cudaGetErrorString(error);
+    cudaEventRecord(stop, 0);
+    cudaEventSynchronize(stop);
+
+    cudaEventElapsedTime(&elapsedTime, start, stop);
+
+    cudaEventDestroy(start);
+    cudaEventDestroy(stop);
+    std::cout << elapsedTime << " ms elapsed for copy operation" << std::endl;
 }
