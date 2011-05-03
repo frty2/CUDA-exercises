@@ -8,11 +8,10 @@ typedef float3 vector;
 
 __global__ void dotproduct(vector *A, vector *B, float *C)
 {
-    C[0] = 1337;
-//	int threadid = threadIdx.x + blockIdx.x*blockDim.x;
-    //if(threadid < itemcount){
-    //	C[threadid] = 97;//A[threadid].x*B[threadid].x + A[threadid].y*B[threadid].y + A[threadid].z*B[threadid].z;
-    //}
+	int threadid = threadIdx.x + blockIdx.x*blockDim.x + blockIdx.y*blockDim.x*gridDim.x;
+    if(threadid < itemcount){
+    	C[threadid] = A[threadid].x*B[threadid].x + A[threadid].y*B[threadid].y + A[threadid].z*B[threadid].z;
+    }
 }
 
 int main()
@@ -66,15 +65,18 @@ int main()
     cudaEvent_t start, stop;
     float elapsedTime;
 
+	int maxgrid = 65535;
 
     for(int i = 0; i <= 10; i++)
     {
         int threads = 1 << i;
         int blocks = (itemcount+threads-1)/threads;
+		int gridx = maxgrid;
+		int gridy = blocks / maxgrid + 1;
         std::cout << "Threads per block: " << threads << std::endl;
-        std::cout << "Blocks per Grid: " << blocks << std::endl;
+        std::cout << "Blocks per Grid: " << gridx << "x" << gridy << std::endl;
         dim3 threadsPerBlock(threads);
-        dim3 blocksPerGrid(blocks);
+        dim3 blocksPerGrid(gridx, gridy);
         cudaEventCreate(&start);
         cudaEventCreate(&stop);
         cudaEventRecord(start, 0);
