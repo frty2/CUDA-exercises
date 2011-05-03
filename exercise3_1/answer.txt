@@ -1,0 +1,46 @@
+Programmausgabe:
+Threads per block: 1
+Blocks per Grid: 65535x17
+9.36688 ms elapsed for executing kernel
+
+Threads per block: 2
+Blocks per Grid: 65535x9
+5.07926 ms elapsed for executing kernel
+
+Threads per block: 4
+Blocks per Grid: 65535x5
+2.71587 ms elapsed for executing kernel
+
+Threads per block: 8
+Blocks per Grid: 65535x3
+1.50826 ms elapsed for executing kernel
+
+Threads per block: 16
+Blocks per Grid: 65535x2
+0.895616 ms elapsed for executing kernel
+
+Threads per block: 32
+Blocks per Grid: 32768x1
+0.450624 ms elapsed for executing kernel
+
+Threads per block: 64
+Blocks per Grid: 16384x1
+0.385088 ms elapsed for executing kernel
+
+Threads per block: 128
+Blocks per Grid: 8192x1
+0.364608 ms elapsed for executing kernel
+
+Threads per block: 256
+Blocks per Grid: 4096x1
+0.3624 ms elapsed for executing kernel
+
+Threads per block: 512
+Blocks per Grid: 2048x1
+0.368096 ms elapsed for executing kernel
+
+Threads per block: 1024
+Blocks per Grid: 1024x1
+0.406592 ms elapsed for executing kernel
+
+Je mehr Arbeit in den einzelnen Blocks ist, umso schneller wird der Kernel. Bei vielen Blocks steigt der organisatorische Aufwand im Vergleich zur geleisteten Arbeit je Block. Je mehr Threads pro Block sind, umso mehr wird in einen Block gearbeitet. Desweiteren kann der Scheduler die Operationen besser auf die einzelnen Funktionseinheiten verteilen. Dadurch sink der organisatorische Teil im Vergleich zur effektiv erbrachten Arbeit.
