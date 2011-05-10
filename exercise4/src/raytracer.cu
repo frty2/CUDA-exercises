@@ -258,8 +258,8 @@ void render_image(const scene& s, const int& height, const int& width, rgb* imag
     if(tricount > 0)
     {
         error = cudaMalloc(&d_triangles, tricount*sizeof(triangle));
-        CHECK_NOTNULL(d_triangles);
         CHECK_EQ(cudaSuccess, error) << "Error at line "<< __LINE__ << ": " << cudaGetErrorString(error);
+        CHECK_NOTNULL(d_triangles);
         error = cudaMemcpyAsync(d_triangles, s.objects.triangles, tricount*sizeof(triangle), cudaMemcpyHostToDevice);
         CHECK_EQ(cudaSuccess, error) << "Error at line "<< __LINE__ << ": " << cudaGetErrorString(error);
     }
@@ -268,8 +268,8 @@ void render_image(const scene& s, const int& height, const int& width, rgb* imag
     point *d_lights = NULL;
     if(lightcount > 0){
         error = cudaMalloc(&d_lights, lightcount*sizeof(point));
-        CHECK_NOTNULL(d_lights) ;
         CHECK_EQ(cudaSuccess, error) << "Error at line "<< __LINE__ << ": " << cudaGetErrorString(error);
+        CHECK_NOTNULL(d_lights);
         error = cudaMemcpyAsync(d_lights, s.light.lights, lightcount*sizeof(point), cudaMemcpyHostToDevice);
         CHECK_EQ(cudaSuccess, error) << "Error at line "<< __LINE__ << ": " << cudaGetErrorString(error);
     }
@@ -281,17 +281,16 @@ void render_image(const scene& s, const int& height, const int& width, rgb* imag
     int csize = sizeof(rtconfig);
     rtconfig *d_config;
     error = cudaMalloc(&d_config, csize);
-    CHECK_NOTNULL(d_config);
     CHECK_EQ(cudaSuccess, error) << "Error at line "<< __LINE__ << ": " << cudaGetErrorString(error);
+    CHECK_NOTNULL(d_config);
     error = cudaMemcpyAsync(d_config, &config, csize, cudaMemcpyHostToDevice);
     CHECK_EQ(cudaSuccess, error) << "Error at line "<< __LINE__ << ": " << cudaGetErrorString(error);
 
     //alloc memory for result
     rgb *d_resultcolors;
-    cudaMalloc(&d_resultcolors, width*height*sizeof(rgb));
-    CHECK_NOTNULL(d_resultcolors);// << "Error at line "<< __LINE__ << ": Not enough memory for result image";
-    error = cudaGetLastError();
+    error = cudaMalloc(&d_resultcolors, width*height*sizeof(rgb));
     CHECK_EQ(cudaSuccess, error) << "Error at line "<< __LINE__ << ": " << cudaGetErrorString(error);
+    CHECK_NOTNULL(d_resultcolors);
 
     error = cudaThreadSynchronize();
     CHECK_EQ(cudaSuccess, error) << "Error at line "<< __LINE__ << ": " << cudaGetErrorString(error);
