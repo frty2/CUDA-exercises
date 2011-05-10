@@ -9,7 +9,6 @@ void write_ppm(rgb* pixelarray, int width, int height, char* filename)
     file << "P3" << std::endl;
     file << width << " " << height << std::endl;
     file << "255" << std::endl;
-    int i = 0;
     for(int y = 0; y < height; y++)
     {
         for(int x = 0; x < width; x++)

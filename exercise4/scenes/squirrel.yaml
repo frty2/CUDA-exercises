@@ -189997,8 +189997,8 @@ primitives:
 
 # FAKE camera (no real use!)
 camera:
-  location:   [8, 0, 8]
-  direction:  [-1, 0, -1]
+  location:   [4, 0, 8]
+  direction:  [-0.5, 0, -1]
   up:         [0, 1, 0]
   distance: 0.1
   horizontal_angle:   75.38014

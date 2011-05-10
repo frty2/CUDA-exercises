@@ -10,17 +10,23 @@ typedef uchar3 rgb;
 
 struct triangle
 {
+    point norm;
     point A;
     point B;
     point C;
-    point norm;
     rgb color;
 };
 
 struct primitives
 {
-    int count;
     triangle *triangles;
+    int count;
+};
+
+struct lighting
+{
+    point *lights;
+    int count;
 };
 
 struct camera
@@ -43,6 +49,7 @@ struct scene
 {
     rgb background;
     primitives objects;
+    lighting light;
     camera cam;
 };
 

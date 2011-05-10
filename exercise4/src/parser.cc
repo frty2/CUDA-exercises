@@ -57,6 +57,17 @@ void operator >>(const YAML::Node& node, primitives& p)
     }
 }
 
+void operator >>(const YAML::Node& node, lighting& l)
+{
+    int size = node.size();
+    l.lights = (point*) malloc( size*sizeof(point) );
+    l.count = size;
+    for(int i=0; i < size; i++)
+    {
+        node[i] >> l.lights[i];
+    }
+}
+
 void operator >>(const YAML::Node& node, camera& c)
 {
     if(const YAML::Node *pValue = node.FindValue("location"))
@@ -87,6 +98,73 @@ void operator >>(const YAML::Node& node, camera& c)
     }
 }
 
+void find_primitives(const YAML::Node& node, primitives& p)
+{
+    if(const YAML::Node *pValue = node.FindValue("primitives"))
+    {
+        *pValue >> p;
+    }
+    else
+    {
+        p.count = 0;
+    }
+}
+
+void find_camera(const YAML::Node& node, camera& c)
+{
+    if(const YAML::Node *pValue = node.FindValue("camera"))
+    {
+        *pValue >> c;
+    }
+    else
+    {
+        std::cout << "Warning: no camera defined, set default" << std::endl;
+        point location, direction, up;
+        location.x = 0;
+        location.y = 0;
+        location.z = 0;
+        direction.x = 0;
+        direction.y = 0;
+        direction.z = 1;
+        up.x = 0;
+        up.y = 1;
+        up.z = 0;
+        c.location = location;
+        c.direction = direction;
+        c.up = up;
+        c.distance = 1;
+        c.hor_angle = 90;
+        c.vert_angle = 90;
+    }
+}
+
+void find_background(const YAML::Node& node, rgb& b)
+{
+    if(const YAML::Node *pValue = node.FindValue("background"))
+    {
+        *pValue >> b;
+    }
+    else
+    {
+        std::cout << "Warning: no background color defined, set default to black" << std::endl;
+        b.x = 0;
+        b.y = 0;
+        b.z = 0;
+    }
+}
+
+void find_lights(const YAML::Node& node, lighting& l)
+{
+    if(const YAML::Node *pValue = node.FindValue("lights"))
+    {
+        *pValue >> l;
+    }
+    else
+    {
+        l.count = 0;
+    }
+}
+
 void parse_scene(const char* filename, scene& s)
 {
     std::ifstream fin(filename);
@@ -97,31 +175,7 @@ void parse_scene(const char* filename, scene& s)
         find_primitives(doc, s.objects);
         find_camera(doc, s.cam);
         find_background(doc, s.background);
+        find_lights(doc, s.light);
     }
     fin.close();
-}
-
-void find_primitives(const YAML::Node& node, primitives& p)
-{
-    if(const YAML::Node *pValue = node.FindValue("primitives"))
-    {
-        *pValue >> p;
-    }
-}
-
-void find_camera(const YAML::Node& node, camera& c)
-{
-    if(const YAML::Node *pValue = node.FindValue("camera"))
-    {
-        *pValue >> c;
-    }
-
-}
-
-void find_background(const YAML::Node& node, rgb& b)
-{
-    if(const YAML::Node *pValue = node.FindValue("background"))
-    {
-        *pValue >> b;
-    }
 }

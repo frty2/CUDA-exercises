@@ -29,6 +29,8 @@ int main(int argc, char **argv)
     google::InstallFailureSignalHandler();
     // flags
     google::ParseCommandLineFlags(&argc, &argv, true);
+    
+
 
     // checking command line arguments
     if (argc != 3)
@@ -57,7 +59,7 @@ int main(int argc, char **argv)
         std::cout << "Not enough memory for image" << std::endl;
         return -1;
     }
-
+    
     // render the scene
     render_image(s, height, width, image);
 
