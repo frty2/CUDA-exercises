@@ -18,23 +18,37 @@ include_directories(${YAMLCPP_INCLUDE_DIR})
 find_package(CUDA REQUIRED)
 include_directories(${CUDA_INCLUDE_DIRS})
 
+find_package(GLUT REQUIRED)
+include_directories(${GLUT_INCLUDE_DIRS})
+
+find_package(OpenGL REQUIRED)
+include_directories(${OPENGL_INCLUDE_DIRS})
+
+if(APPLE)
+    include_directories(/System/Library/Frameworks)
+ENDIF(APPLE)
+
 include_directories("src")
 
 #cpu version
 configure_file(src/raytracer.cu src/raytracer.cc COPYONLY)
-add_executable(rtcpu src/main.cc src/parser.cc src/raytracer.cc src/ppm_writer.cc src/types.cc)
+add_executable(rtcpu src/main.cc src/parser.cc src/raytracer.cc src/ppm_writer.cc src/types.cc src/mainwindow.cc)
 set_target_properties(rtcpu PROPERTIES COMPILE_FLAGS "-D__CPUVERSION__")
 target_link_libraries(rtcpu ${GLOG_LIBRARY})
 target_link_libraries(rtcpu ${GFLAGS_LIBRARY})
 target_link_libraries(rtcpu ${YAMLCPP_LIBRARY})
+target_link_libraries(rtcpu ${GLUT_LIBRARY})
+target_link_libraries(rtcpu ${OPENGL_gl_LIBRARY})
 
 #cuda version
-cuda_add_executable(rtgpu src/main.cc src/parser.cc src/raytracer.cu src/ppm_writer.cc src/types.cc OPTIONS "-D__GPUVERSION__")
+cuda_add_executable(rtgpu src/main.cc src/parser.cc src/raytracer.cu src/ppm_writer.cc src/types.cc src/mainwindow.cc OPTIONS "-D__GPUVERSION__")
 set_target_properties(rtgpu PROPERTIES COMPILE_FLAGS "-D__GPUVERSION__")
 set_target_properties(rtgpu PROPERTIES LINKER_LANGUAGE C)
 target_link_libraries(rtgpu ${GLOG_LIBRARY})
 target_link_libraries(rtgpu ${GFLAGS_LIBRARY})
 target_link_libraries(rtgpu ${YAMLCPP_LIBRARY})
+target_link_libraries(rtgpu ${GLUT_LIBRARY})
+target_link_libraries(rtgpu ${OPENGL_gl_LIBRARY})
 
 # common flags
 SET(CMAKE_CXX_FLAGS "-Wall -Wno-unknown-pragmas -Wno-long-long -Wno-variadic-macros")

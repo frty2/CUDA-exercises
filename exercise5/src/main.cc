@@ -8,6 +8,7 @@
 #include "parser.h"
 #include "raytracer.h"
 #include "ppm_writer.h"
+#include "mainwindow.h"
 
 static bool validateWidthAndHeight(const char* flagname, int value)
 {
@@ -33,14 +34,13 @@ int main(int argc, char **argv)
 
 
     // checking command line arguments
-    if (argc != 3)
+    if (argc < 2)
     {
-        std::cerr << "You have to specify a scene file and a output file" << std::endl;
+        std::cerr << "You have to specify a scene file and maybe a output file" << std::endl;
         return -1;
     }
 
     CHECK_STRNE(argv[1], "") << "No scene file specified.";
-    CHECK_STRNE(argv[2], "") << "No output file specified.";
 
     // parse scene
     scene s;
@@ -60,12 +60,19 @@ int main(int argc, char **argv)
         return -1;
     }
     
+    
     // render the scene
     render_image(s, height, width, image);
 
-    // write image to filename
-    write_ppm(image, width, height, argv[2]);
-
+    if( argc < 3 )
+    {
+        displayimage(argc, argv, image, width, height);
+    }
+    else
+    {
+        // write image to filename
+           write_ppm(image, width, height, argv[2]);
+    }
 
     return 0;
 }
