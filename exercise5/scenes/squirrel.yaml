@@ -189997,7 +189997,7 @@ primitives:
 
 lights:
 - [0, 2, 8]
-- [8, -2, 8]
+#- [8, -2, 8]
 
 # FAKE camera (no real use!)
 camera:

@@ -5,7 +5,8 @@
 #include "float.h"
 #include "raytracer.h"
 
-#define EPSILON 0.0001f
+#define EPSILON1 0.0001f
+#define EPSILON2 0.000000001f
 #define PI 3.14159265358f
 
 #define chunksize 8
@@ -108,7 +109,7 @@ __host__ __device__ bool intersect(const point& location, const point& direction
     float t = dot(normal, p-location) / dot(normal,direction);
     
     //wrong direction
-    if(t < EPSILON)
+    if(t < EPSILON1)
     {
         return false;
     }
@@ -119,7 +120,7 @@ __host__ __device__ bool intersect(const point& location, const point& direction
 // checks if point p is on the same side of the line AB as C
 __host__ __device__ bool inside(const point& p, const point& c, const point& a, const point& b)
 {
-    if( dot(cross(b-a, p-a), cross(b-a, c-a)) >= -EPSILON )
+    if( dot(cross(b-a, p-a), cross(b-a, c-a)) >= -EPSILON2 )
     {
         return true;
     }
@@ -161,7 +162,7 @@ __device__ __host__ bool shootray(const ray& r, int tricount, triangle *triangle
     {
         hit = intersect(r, triangles[i], intersection);
         distance = norm(intersection-r.location);
-        if(hit && distance < min_distance && distance >= -EPSILON)
+        if(hit && distance < min_distance)
         {
             min_distance = distance;
             nearest = triangles[i];
