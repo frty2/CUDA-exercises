@@ -10,7 +10,6 @@ typedef uchar3 rgb;
 
 struct triangle
 {
-    point norm;
     point A;
     point B;
     point C;

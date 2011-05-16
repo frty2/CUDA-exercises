@@ -3,9 +3,12 @@
 # colors
 color: &white
    [255, 255, 255]
+   
+color: &black
+    [0, 0, 0]
 
 # background
-background: *white
+background: *black
 
 # primitives
 primitives: 
@@ -189994,10 +189997,20 @@ primitives:
   - *id8712
   - *id9995
   - *id9879
+- color:
+    - 255
+    - 255
+    - 255
+  triangle: [[-100,-5,-100],[-100,-5,100],[100,-5,-100]]
+- color: 
+    - 255
+    - 255
+    - 255
+  triangle: [[100,-5,100],[100,-5,-100],[-100,-5,100]]
 
 lights:
 - [0, 2, 8]
-#- [8, -2, 8]
+- [4, 2, 0]
 
 # FAKE camera (no real use!)
 camera:

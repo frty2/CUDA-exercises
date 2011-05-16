@@ -20,6 +20,8 @@ struct rtconfig
     point xgap;
     point ygap;
     point upperleft;
+    int lightcount;
+    int tricount;
 };
 typedef struct rtconfig rtconfig;
 
@@ -130,7 +132,9 @@ __host__ __device__ bool inside(const point& p, const point& c, const point& a, 
 __host__ __device__ bool intersect(const ray& r, const triangle& t, point& intersection)
 {
     //calc intersection with triangle surface
-    if(!intersect(r.location, r.direction, t.norm, t.A, intersection))
+    point normal = cross(t.A-t.B, t.A-t.C);
+    normalize(normal);
+    if(!intersect(r.location, r.direction, normal, t.A, intersection))
     {
         return false;
     }
@@ -160,84 +164,79 @@ __device__ __host__ bool shootray(const ray& r, int tricount, triangle *triangle
     point intersection;
     for(int i = 0; i < tricount; i++)
     {
-        hit = intersect(r, triangles[i], intersection);
+        triangle t = triangles[i];
+        hit = intersect(r, t, intersection);
         distance = norm(intersection-r.location);
         if(hit && distance < min_distance)
         {
             min_distance = distance;
-            nearest = triangles[i];
+            nearest = t;
             intersec = intersection;
         }
     }
-	return min_distance != FLT_MAX;
+    return min_distance != FLT_MAX;
 }
 
 __device__ __host__ rgb lighten(const triangle& nearest, const point& intersection, int lightcount, point *lights, int tricount, triangle *triangles)
 {
     float lightintense = 0.0f;
+    
+    point normal = cross(nearest.A-nearest.B, nearest.A-nearest.C);
+    normalize(normal);
+    
     ray lightray;
+    triangle lightnearest;
+    point lightintersect;
+    
     lightray.location = intersection;
+    
     for(int i = 0;i < lightcount;i++)
     {
-        lightray.direction = lights[i]-intersection;
+        point light = lights[i];
+        lightray.direction = light-intersection;
         normalize(lightray.direction);
-        triangle lightnearest;point lightintersect;
-
+        
         if(!shootray(lightray, tricount, triangles, lightnearest, lightintersect) ||
-                    (norm(lightintersect - intersection) > norm(lights[i] - intersection)))
+                    (norm(lightintersect - intersection) > norm(light - intersection)))
         {
-            lightintense += fabs(anglebetween(lightray.direction, nearest.norm));
+            float cosangle = anglebetween(lightray.direction, normal);
+            if(cosangle > 0)
+                lightintense += cosangle;
         }
     }
     return shade(nearest.color, lightintense);
 }
 
 #if __CPUVERSION__
-void render_pixel(rtconfig *config, int tricount, triangle *triangles, int lightcount, point *lights, rgb *resultpixels, int x, int y)
+void render_pixel(rtconfig config, triangle *triangles, point *lights, rgb *resultpixels, int x, int y)
 {
 #else
-__global__ void render_pixel(rtconfig *config, int tricount, triangle *triangles, int lightcount, point *lights, rgb *resultpixels)
+__global__ void render_pixel(rtconfig config, triangle *triangles, point *lights, rgb *resultpixels)
 {
     int x = blockIdx.x*blockDim.x+threadIdx.x;
     int y = blockIdx.y*blockDim.y+threadIdx.y;
 #endif
 
-    if(x < config->width && y < config->height)
+    if(x < config.width && y < config.height)
     {
-		ray r;
-        initial_ray(config->cam, config->upperleft, x, y, config->xgap, config->ygap, r);
+        ray r;
+        initial_ray(config.cam, config.upperleft, x, y, config.xgap, config.ygap, r);
 
         //find nearest intersect triangle
         point intersec;
         triangle nearest;
-        resultpixels[y*config->width+x] = config->background;
         
-        if(shootray(r, tricount,triangles, nearest, intersec))
+        if(shootray(r, config.tricount, triangles, nearest, intersec))
         {
             //set pixel color to color of nearest intersecting triangle
-            resultpixels[y*config->width+x] = lighten(nearest, intersec, lightcount, lights, tricount, triangles);
+            resultpixels[y*config.width+x] = lighten(nearest, intersec, config.lightcount, lights, config.tricount, triangles);
+        }
+        else
+        {
+            resultpixels[y*config.width+x] = config.background;
         }
     }
 }
-
-//calculates the norm for every triangle
-
-__global__ void init_norms(int count, triangle *triangles)
-{
-#if __GPUVERSION__
-    int tid = threadIdx.x+blockIdx.x*blockDim.x;
-    if(tid < count)
-#else
-    for(int tid = 0; tid < count; tid++)
-#endif
-    {
-        triangle t = triangles[tid];
-        t.norm = cross(t.A - t.C, t.A - t.B);
-        normalize( t.norm );
-        triangles[tid].norm = t.norm;
-    }
-}
-
 
 void init_ray_gap(const camera& c, int width, int height, point &xgap, point &ygap, point& upperleft)
 {
@@ -265,8 +264,8 @@ void render_image(const scene& s, const int& height, const int& width, rgb* imag
     config.width = width;
     config.height = height;
     
-    int tricount = s.objects.count;
-    int lightcount = s.light.count;
+    config.tricount = s.objects.count;
+    config.lightcount = s.light.count;
     
 #if __GPUVERSION__
     cudaError_t error;
@@ -276,36 +275,28 @@ void render_image(const scene& s, const int& height, const int& width, rgb* imag
 
     //copy primitives to device
     triangle *d_triangles = NULL;
-    if(tricount > 0)
+    if(config.tricount > 0)
     {
-        error = cudaMalloc(&d_triangles, tricount*sizeof(triangle));
+        error = cudaMalloc(&d_triangles, config.tricount*sizeof(triangle));
         CHECK_EQ(cudaSuccess, error) << "Error at line "<< __LINE__ << ": " << cudaGetErrorString(error);
         CHECK_NOTNULL(d_triangles);
-        error = cudaMemcpyAsync(d_triangles, s.objects.triangles, tricount*sizeof(triangle), cudaMemcpyHostToDevice);
+        error = cudaMemcpyAsync(d_triangles, s.objects.triangles, config.tricount*sizeof(triangle), cudaMemcpyHostToDevice);
         CHECK_EQ(cudaSuccess, error) << "Error at line "<< __LINE__ << ": " << cudaGetErrorString(error);
     }
     
     //copy lights to device
     point *d_lights = NULL;
-    if(lightcount > 0){
-        error = cudaMalloc(&d_lights, lightcount*sizeof(point));
+    if(config.lightcount > 0){
+        error = cudaMalloc(&d_lights, config.lightcount*sizeof(point));
         CHECK_EQ(cudaSuccess, error) << "Error at line "<< __LINE__ << ": " << cudaGetErrorString(error);
         CHECK_NOTNULL(d_lights);
-        error = cudaMemcpyAsync(d_lights, s.light.lights, lightcount*sizeof(point), cudaMemcpyHostToDevice);
+        error = cudaMemcpyAsync(d_lights, s.light.lights, config.lightcount*sizeof(point), cudaMemcpyHostToDevice);
         CHECK_EQ(cudaSuccess, error) << "Error at line "<< __LINE__ << ": " << cudaGetErrorString(error);
     }
     
     //calc ray gaps
     init_ray_gap(config.cam, config.width, config.height, config.xgap, config.ygap, config.upperleft);
 
-    //copy config to device
-    int csize = sizeof(rtconfig);
-    rtconfig *d_config;
-    error = cudaMalloc(&d_config, csize);
-    CHECK_EQ(cudaSuccess, error) << "Error at line "<< __LINE__ << ": " << cudaGetErrorString(error);
-    CHECK_NOTNULL(d_config);
-    error = cudaMemcpyAsync(d_config, &config, csize, cudaMemcpyHostToDevice);
-    CHECK_EQ(cudaSuccess, error) << "Error at line "<< __LINE__ << ": " << cudaGetErrorString(error);
 
     //alloc memory for result
     rgb *d_resultcolors;
@@ -316,20 +307,15 @@ void render_image(const scene& s, const int& height, const int& width, rgb* imag
     error = cudaThreadSynchronize();
     CHECK_EQ(cudaSuccess, error) << "Error at line "<< __LINE__ << ": " << cudaGetErrorString(error);
 
-    //calc primitives norms
-    int n = 512;
-    dim3 normThreadsPerBlock(n);
-    dim3 normBlocksPerGrid((tricount + n - 1) / n);
-    init_norms<<<normBlocksPerGrid, normThreadsPerBlock>>>(tricount, d_triangles);
-    error = cudaGetLastError();
-    CHECK_EQ(cudaSuccess, error) << "Error at line "<< __LINE__ << ": " << cudaGetErrorString(error);
-
     error = cudaThreadSynchronize();
     CHECK_EQ(cudaSuccess, error) << "Error at line "<< __LINE__ << ": " << cudaGetErrorString(error);
 
     //launch main kernel
-    render_pixel<<<blocksPerGrid, threadsPerBlock>>>(d_config, tricount, d_triangles, lightcount, d_lights, d_resultcolors);
+    render_pixel<<<blocksPerGrid, threadsPerBlock>>>(config, d_triangles, d_lights, d_resultcolors);
     error = cudaGetLastError();
+    CHECK_EQ(cudaSuccess, error) << "Error at line "<< __LINE__ << ": " << cudaGetErrorString(error);
+    
+    error = cudaThreadSynchronize();
     CHECK_EQ(cudaSuccess, error) << "Error at line "<< __LINE__ << ": " << cudaGetErrorString(error);
 
     //copy back results
@@ -338,18 +324,16 @@ void render_image(const scene& s, const int& height, const int& width, rgb* imag
 
     cudaFree(d_triangles);
     cudaFree(d_lights);
-    cudaFree(d_config);
     cudaFree(d_resultcolors);
 #else
     //calc ray gaps
-    init_norms(tricount, s.objects.triangles);
     init_ray_gap(config.cam, config.width, config.height, config.xgap, config.ygap, config.upperleft);
 
     for(int y = 0; y < height; y++)
     {
         for(int x = 0; x < width; x++)
         {
-            render_pixel(&config, tricount, s.objects.triangles, lightcount, s.light.lights, image, x, y);
+            render_pixel(config, s.objects.triangles, s.light.lights, image, x, y);
         }
     }
 #endif
