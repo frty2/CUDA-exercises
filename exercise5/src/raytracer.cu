@@ -9,7 +9,7 @@
 #define EPSILON2 0.000000001f
 #define PI 3.14159265358f
 
-#define chunksize 8
+#define chunksize 16
 
 struct rtconfig
 {
