@@ -1,6 +1,7 @@
 #include <cmath>
 #include <glog/logging.h>
 #include <iostream>
+#include <sys/time.h>
 
 #include "float.h"
 #include "raytracer.h"
@@ -97,7 +98,6 @@ __host__ __device__ point operator-(const point& left, const point& right)
 
 __host__ __device__ rgb shade(const rgb& color, float fraction)
 {
-    if(fraction < 0.0f) fraction = 0.0f;
     if(fraction > 1.0f) fraction = 1.0f;
     rgb result;
     result.x = color.x*fraction;
@@ -110,23 +110,14 @@ __host__ __device__ bool intersect(const point& location, const point& direction
 {
     float t = dot(normal, p-location) / dot(normal,direction);
     
-    //wrong direction
-    if(t < EPSILON1)
-    {
-        return false;
-    }
     intersection = location+t*direction;
-    return true;
+    return t >= EPSILON1;
 }
 
 // checks if point p is on the same side of the line AB as C
 __host__ __device__ bool inside(const point& p, const point& c, const point& a, const point& b)
 {
-    if( dot(cross(b-a, p-a), cross(b-a, c-a)) >= -EPSILON2 )
-    {
-        return true;
-    }
-    return false;
+    return dot(cross(b-a, p-a), cross(b-a, c-a)) >= -EPSILON2;
 }
 
 __host__ __device__ bool intersect(const ray& r, const triangle& t, point& intersection)
@@ -134,17 +125,10 @@ __host__ __device__ bool intersect(const ray& r, const triangle& t, point& inter
     //calc intersection with triangle surface
     point normal = cross(t.A-t.B, t.A-t.C);
     normalize(normal);
-    if(!intersect(r.location, r.direction, normal, t.A, intersection))
-    {
-        return false;
-    }
-
-    //check if intersection is within triangle
-    if(inside(intersection, t.A, t.B, t.C) && inside(intersection, t.B, t.A, t.C) && inside(intersection, t.C, t.A, t.B) )
-    {
-        return true;
-    }
-    return false;
+    return intersect(r.location, r.direction, normal, t.A, intersection) && 
+            inside(intersection, t.A, t.B, t.C) && 
+            inside(intersection, t.B, t.A, t.C) && 
+            inside(intersection, t.C, t.A, t.B);
 }
 
 __device__ void initial_ray(const camera& c, const point& upperleft, int x, int y, point& xgap, point& ygap, ray& r)
@@ -268,11 +252,25 @@ void render_image(const scene& s, const int& height, const int& width, rgb* imag
     config.lightcount = s.light.count;
     
 #if __GPUVERSION__
+    cudaEvent_t start_exec, stop_exec;
+    cudaEvent_t start_cpy2device, stop_cpy2device;
+    cudaEvent_t start_cpy2host, stop_cpy2host;
+    
+    float time_cpy2device, time_exec, time_cpy2host, rays_per_ms;
+    
+    cudaEventCreate(&start_exec);
+    cudaEventCreate(&stop_exec);
+    cudaEventCreate(&start_cpy2device);
+    cudaEventCreate(&stop_cpy2device);
+    cudaEventCreate(&start_cpy2host);
+    cudaEventCreate(&stop_cpy2host);
+    
     cudaError_t error;
 
     dim3 threadsPerBlock(chunksize,chunksize);
     dim3 blocksPerGrid((width+chunksize-1)/chunksize, (height+chunksize-1)/chunksize);
-
+    
+    cudaEventRecord(start_cpy2device, 0);
     //copy primitives to device
     triangle *d_triangles = NULL;
     if(config.tricount > 0)
@@ -309,26 +307,56 @@ void render_image(const scene& s, const int& height, const int& width, rgb* imag
 
     error = cudaThreadSynchronize();
     CHECK_EQ(cudaSuccess, error) << "Error at line "<< __LINE__ << ": " << cudaGetErrorString(error);
-
+    
+    cudaEventRecord(stop_cpy2device, 0);
+    cudaEventSynchronize(stop_cpy2device);
+    
     //launch main kernel
+    cudaEventRecord(start_exec, 0);
     render_pixel<<<blocksPerGrid, threadsPerBlock>>>(config, d_triangles, d_lights, d_resultcolors);
     error = cudaGetLastError();
     CHECK_EQ(cudaSuccess, error) << "Error at line "<< __LINE__ << ": " << cudaGetErrorString(error);
     
     error = cudaThreadSynchronize();
     CHECK_EQ(cudaSuccess, error) << "Error at line "<< __LINE__ << ": " << cudaGetErrorString(error);
-
+    cudaEventRecord(stop_exec, 0);
+    cudaEventSynchronize(stop_exec);
+    
     //copy back results
+    cudaEventRecord(start_cpy2host, 0);
     error = cudaMemcpy(image, d_resultcolors, width*height*sizeof(rgb), cudaMemcpyDeviceToHost);
     CHECK_EQ(cudaSuccess, error) << "Error at line "<< __LINE__ << ": " << cudaGetErrorString(error);
-
+    cudaEventRecord(stop_cpy2host, 0);
+    cudaEventSynchronize(stop_cpy2host);
+    
+    cudaEventElapsedTime(&time_cpy2device, start_cpy2device, stop_cpy2device);
+    cudaEventElapsedTime(&time_exec, start_exec, stop_exec);
+    cudaEventElapsedTime(&time_cpy2host, start_cpy2host, stop_cpy2host);
+    rays_per_ms = (width*height) / time_exec;
+    
+    std::cout << "Time to copy and alloc memory: " << time_cpy2device << " ms" <<std::endl;
+    std::cout << "Time to execute the kernel: " << time_exec << " ms" << std::endl;
+    std::cout << "Time to copy back the result: " << time_cpy2host << " ms" << std::endl;
+    std::cout << "Computed rays per millisecond: " << rays_per_ms << std::endl;
+    
     cudaFree(d_triangles);
     cudaFree(d_lights);
     cudaFree(d_resultcolors);
+    
+    cudaEventDestroy(start_exec);
+    cudaEventDestroy(stop_exec);
+    cudaEventDestroy(start_cpy2device);
+    cudaEventDestroy(stop_cpy2device);
+    cudaEventDestroy(start_cpy2host);
+    cudaEventDestroy(stop_cpy2host);
 #else
     //calc ray gaps
     init_ray_gap(config.cam, config.width, config.height, config.xgap, config.ygap, config.upperleft);
-
+    
+    timeval start_exec, stop_exec;
+    float rays_per_ms;
+    
+    gettimeofday(&start_exec, 0);
     for(int y = 0; y < height; y++)
     {
         for(int x = 0; x < width; x++)
@@ -336,6 +364,11 @@ void render_image(const scene& s, const int& height, const int& width, rgb* imag
             render_pixel(config, s.objects.triangles, s.light.lights, image, x, y);
         }
     }
+    gettimeofday(&stop_exec, 0);
+    long timediff = (stop_exec.tv_usec-start_exec.tv_usec);
+    rays_per_ms = (width*height) / float(timediff);
+    std::cout << "Time to execute the raytracer: " << timediff << " ms" << std::endl;
+    std::cout << "Computed rays per millisecond: " << rays_per_ms << std::endl;
 #endif
 }
 
