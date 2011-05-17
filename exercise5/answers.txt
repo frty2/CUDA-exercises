@@ -23,7 +23,7 @@ Time to copy back the result: 1.62784 ms
 Computed rays per millisecond: 90.2674
 
 Timing cpu on mpc711 @ 100x100 pixel squirrel.yaml
-Time to execute the raytracer: 156160 ms
-Computed rays per millisecond: 0.0640369
+Time to execute the raytracer: 214696 ms
+Computed rays per millisecond: 0.0465775
 
-Speedup at 100x100 pixels: 918.8
+Speedup at 100x100 pixels: 1263.2 (based on pixels per ray)
