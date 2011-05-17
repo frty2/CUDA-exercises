@@ -19,7 +19,7 @@ float* pixels;
 
 void paint(void)
 { 
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT);
 
     glDrawPixels(width, height, GL_RGB, GL_FLOAT, pixels);
 
@@ -49,7 +49,7 @@ void displayimage(int argc, char **argv, rgb* pixelarray, int w, int h)
         }
     }
     glutInit(&argc, argv); 
-    glutInitDisplayMode (GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH); 
+    glutInitDisplayMode (GLUT_DOUBLE | GLUT_RGB); 
     glutInitWindowPosition(100,100);
     glutInitWindowSize(width,height);
     glutCreateWindow (argv[0]);

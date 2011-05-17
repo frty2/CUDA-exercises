@@ -41,7 +41,7 @@ target_link_libraries(rtcpu ${GLUT_LIBRARY})
 target_link_libraries(rtcpu ${OPENGL_gl_LIBRARY})
 
 #cuda version
-cuda_add_executable(rtgpu src/main.cc src/parser.cc src/raytracer.cu src/ppm_writer.cc src/types.cc src/mainwindow.cc OPTIONS -D__GPUVERSION__ --maxrregcount 32)
+cuda_add_executable(rtgpu src/main.cc src/parser.cc src/raytracer.cu src/ppm_writer.cc src/types.cc src/mainwindow.cc OPTIONS -D__GPUVERSION__)
 set_target_properties(rtgpu PROPERTIES COMPILE_FLAGS "-D__GPUVERSION__")
 set_target_properties(rtgpu PROPERTIES LINKER_LANGUAGE C)
 target_link_libraries(rtgpu ${GLOG_LIBRARY})
