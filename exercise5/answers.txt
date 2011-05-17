@@ -1,0 +1,29 @@
+My kernel uses 56 registers and has a occupancy of 0,333. 
+If I force the compiler to use only 32 registers, the occupancy increases to 0,5.
+The kernel causes 281384 global load and 1146 global store requests. I think 
+the number of accesses are low because the profiler doesnt count the cache accesses.
+My code causes strong uncoalesced access to the memory, because the threads access the
+same primitives and lightsources and are not offset by the threadid. 
+
+Bonus Assigment:
+
+I've changed the camera to face the squirrel, added 2 lightsources and added a floor of 2 triangles. The floor is so big, the the angle at the end of the surface is going down to zero. Therefor there is a gradient from white to black, which is the new background color. There are also 2 shadows caused by the squirrel on the floor.
+
+
+Timing gpu on mpc711 @ 100x100 pixel
+Time to copy and alloc memory: 0.86016 ms
+Time to execute the kernel: 169.961 ms
+Time to copy back the result: 0.069632 ms
+Computed rays per millisecond: 58.837
+
+Timing gpu on mpc711 @ 1000x1000 pixel
+Time to copy and alloc memory: 0.837536 ms
+Time to execute the kernel: 11078.2 ms
+Time to copy back the result: 1.62784 ms
+Computed rays per millisecond: 90.2674
+
+Timing cpu on mpc711 @ 100x100 pixel
+Time to execute the raytracer: 381387 ms
+Computed rays per millisecond: 0.0262201
+
+Speedup at 100x100 pixels: 2243,97 ?!?
