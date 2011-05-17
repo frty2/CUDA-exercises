@@ -365,7 +365,7 @@ void render_image(const scene& s, const int& height, const int& width, rgb* imag
         }
     }
     gettimeofday(&stop_exec, 0);
-    long timediff = (stop_exec.tv_usec-start_exec.tv_usec);
+    long timediff = (stop_exec.tv_sec * 1000000 + stop_exec.tv_usec - start_exec.tv_sec * 1000000 + start_exec.tv_usec) / 1000;
     rays_per_ms = (width*height) / float(timediff);
     std::cout << "Time to execute the raytracer: " << timediff << " ms" << std::endl;
     std::cout << "Computed rays per millisecond: " << rays_per_ms << std::endl;
