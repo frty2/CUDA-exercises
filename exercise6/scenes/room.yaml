@@ -1,0 +1,75 @@
+# a simple scene
+
+# colors
+color: &red 
+   [255, 0, 0]
+color: &green
+   [0, 255, 0]
+color: &blue
+   [0, 0, 255]
+color: &white
+   [255, 255, 255]
+color: &orange
+    [238, 118, 33]
+color: &brown
+    [255, 255, 255]
+color: &gray
+    [110, 110, 110]
+
+# background
+background: *white
+
+# all primitives
+primitives:
+#left wall
+- triangle: [[0, 0, 0], [0, 15, 0], [0, 0, 20]]
+  color: *orange
+- triangle: [[0, 15, 0], [0, 15, 20], [0, 0, 20]]
+  color: *orange
+
+#right wall
+- triangle: [[10, 0, 0], [10, 0, 20], [10, 15, 0]]
+  color: *green
+- triangle: [[10, 15, 0], [10, 0, 20], [10, 15, 20]]
+  color: *green
+
+#ceil wall
+- triangle: [[0, 15, 0], [10, 15, 0], [0, 15, 20]]
+  color: *blue
+- triangle: [[10, 15, 0], [10, 15, 20], [0, 15, 20]]
+  color: *blue
+  
+#floor wall
+- triangle: [[0, 0, 0], [0, 0, 20], [10, 0, 0]]
+  color: *red
+- triangle: [[10, 0, 0], [0, 0, 20], [10, 0, 20]]
+  color: *red
+    
+#back wall
+- triangle: [[0, 15, 20], [10, 0, 20], [0, 0, 20]]
+  color: *gray
+- triangle: [[10, 15, 20], [10, 0, 20], [0, 15, 20]]
+  color: *gray
+  
+#tetraeder
+- triangle: [[2, 1, 12], [5, 5, 10], [5, 2, 8]]
+  color: *red
+- triangle: [[5, 2, 8], [5, 5, 10], [8, 1, 12]]
+  color: *green
+- triangle: [[5, 2, 8], [8, 1, 12], [2, 1, 12]]
+  color: *blue
+  
+# point lights
+lights:
+#- [5, 14, 10]
+#- [5, 14, 15]
+- [5, 14, 5]
+
+# camera
+camera:
+  location:           [5, 5, -5]
+  direction:          [0, 0, 1]
+  up:                 [0, 1, 0]
+  distance:           1
+  horizontal_angle:   70
+  vertical_angle:     70
