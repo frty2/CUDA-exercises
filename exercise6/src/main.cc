@@ -14,7 +14,7 @@
 static bool validateWidthAndHeight(const char* flagname, int value)
 {
     if (value > 0 && value < 32768)
-        return true;
+        { return true; }
     printf("Invalid value for --%s: %d\n", flagname, (int)value);
     return false;
 }
@@ -54,7 +54,7 @@ int main(int argc, char **argv)
     // changed to dynamic array to get more pixels
     rgb *image;
 
-    image = (rgb*) malloc(width*height*sizeof(rgb));
+    image = (rgb*) malloc((width + 1) * (height + 1) * sizeof(rgb));
     if(! image)
     {
         std::cout << "Not enough memory for image" << std::endl;
@@ -63,9 +63,9 @@ int main(int argc, char **argv)
 
 
     // render the scene
-    render_image(s, height, width, image);
-    
-    antialiase(height, width, image);
+    render_image(s, height + 1, width + 1, image);
+
+    antialiase(height + 1, width + 1, image);
 
     if( argc < 3 )
     {
@@ -76,7 +76,7 @@ int main(int argc, char **argv)
         // write image to filename
         write_ppm(image, width, height, argv[2]);
     }
-    
+
     free(image);
 
     return 0;

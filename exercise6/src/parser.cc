@@ -19,7 +19,7 @@ void operator >>(const YAML::Node& node, point& v)
 
 void operator >>(const YAML::Node& node, rgb& r)
 {
-    int rt,gt,bt;
+    int rt, gt, bt;
 
     node[0] >> rt;
     r.x = rt;
@@ -47,10 +47,10 @@ void operator >>(const YAML::Node& node, triangle& t)
 void operator >>(const YAML::Node& node, primitives& p)
 {
     int size = node.size();
-    p.triangles = (triangle*) malloc( size*sizeof(triangle) );
+    p.triangles = (triangle*) malloc( size * sizeof(triangle) );
     p.count = size;
 
-    for(int i=0; i < size; i++)
+    for(int i = 0; i < size; i++)
     {
         node[i]["triangle"] >> p.triangles[i];
         node[i]["color"] >> p.triangles[i].color;
@@ -60,9 +60,9 @@ void operator >>(const YAML::Node& node, primitives& p)
 void operator >>(const YAML::Node& node, lighting& l)
 {
     int size = node.size();
-    l.lights = (point*) malloc( size*sizeof(point) );
+    l.lights = (point*) malloc( size * sizeof(point) );
     l.count = size;
-    for(int i=0; i < size; i++)
+    for(int i = 0; i < size; i++)
     {
         node[i] >> l.lights[i];
     }

@@ -13,7 +13,7 @@ void write_ppm(rgb* pixelarray, int width, int height, char* filename)
     {
         for(int x = 0; x < width; x++)
         {
-            int pos = y*width+x;
+            int pos = y * width + x;
             file << (int)pixelarray[pos].x << " " << (int)pixelarray[pos].y << " " << (int)pixelarray[pos].z << std::endl;
         }
     }
