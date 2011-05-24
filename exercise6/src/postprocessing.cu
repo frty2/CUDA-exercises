@@ -45,7 +45,8 @@ void antialiase(int height, int width, rgb* image)
 
     error = cudaMallocPitch(&d_image, &pitch, width * sizeof(rgb), height);
     CHECK_EQ(cudaSuccess, error) << "Error at line " << __LINE__ << ": " << cudaGetErrorString(error);
-
+    CHECK_NOTNULL(d_image);
+    
     error = cudaMemcpy2D(d_image, pitch, image, width * sizeof(rgb), width * sizeof(rgb) , height, cudaMemcpyHostToDevice);
     CHECK_EQ(cudaSuccess, error) << "Error at line " << __LINE__ << ": " << cudaGetErrorString(error);
 
@@ -57,7 +58,8 @@ void antialiase(int height, int width, rgb* image)
     rgb *d_result;
     error = cudaMalloc(&d_result, (width - 1) * (height - 1) * sizeof(rgb) );
     CHECK_EQ(cudaSuccess, error) << "Error at line " << __LINE__ << ": " << cudaGetErrorString(error);
-
+    CHECK_NOTNULL(d_result);
+    
     dim3 threadsPerBlock(chunksizex, chunksizey);
     dim3 blocksPerGrid((width + chunksizex - 2) / chunksizex, (height + chunksizey - 2) / chunksizey);
 
