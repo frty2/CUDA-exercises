@@ -50,7 +50,7 @@ void antialiase(int height, int width, rgb* image)
     CHECK_EQ(cudaSuccess, error) << "Error at line " << __LINE__ << ": " << cudaGetErrorString(error);
 
 
-    error = cudaBindTexture2D(NULL, &textureImage, d_image, &channelDesc, width, height, pitch);
+    error = cudaBindTexture2D(0, &textureImage, d_image, &channelDesc, width, height, pitch);
     CHECK_EQ(cudaSuccess, error) << "Error at line " << __LINE__ << ": " << cudaGetErrorString(error);
 
     //Malloc memory for result

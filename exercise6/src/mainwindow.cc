@@ -20,7 +20,7 @@ rgb* pixels;
 void paint(void)
 {
     glClear(GL_COLOR_BUFFER_BIT);
-    glRasterPos2f(-1,1.0);
+    glRasterPos2f(-1, 1.0);
     glPixelZoom(1.0, -1.0);
     glDrawPixels(width, height, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
 
