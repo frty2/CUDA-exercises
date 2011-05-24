@@ -1,0 +1,10 @@
+Assignment 1
+
+The algorithm of Möller and Trumbore does the intersection with the plane and the inside triangle check in one step. It uses 54 registers (the old algorithms has been used 56) and can be forced down to 48 registers and get faster by that. For the squirrel scene(400x400) my rays/ms counter goes up from 90 to 140. The occupency now is 0.417 instead of 0.333.
+
+Assignment 2
+
+When I use shared memory to buffer the triangles, the performance only increase slightly (141 rays/ms instead of 140 rays/ms for squirrel 400x400). I think the the caching system of modern gpus causes this behaviour. The requestet triangles are cached and therefor can be loaded fast from global memory. I achieved a very similiar performance by using a buffersize so that every thread loads 1 triangle from global memory and this access should be coalesce.
+
+Assignment 3
+I have implemented a simple anti-aliasing for the resulting image. The main changes are in the 'main.cc' and the 'postprocessing.cu'. I render the image 1 pixel bigger and use the arithmetic average of the 4 surrounding pixels to calculate the pixels color.
