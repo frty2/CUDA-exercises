@@ -159,49 +159,6 @@ char *print_cl_errstring(cl_int err)
     }
 }
 
-//include <cstring>, etc.
-cl_int getPlatformID(cl_platform_id* clSelectedPlatformID) {
-    char chBuffer[1024];
-    cl_uint num_platforms;
-    cl_platform_id* clPlatformIDs;
-    cl_int ciErrNum;
-    *clSelectedPlatformID = NULL;
-
-    // Get OpenCL platform count
-    ciErrNum = clGetPlatformIDs (0, NULL, &num_platforms);
-    if (ciErrNum != CL_SUCCESS) {
-        return -1000;
-    } else {
-        if(num_platforms == 0) {
-            return -2000;
-        } else {
-            // if there's a platform or more, make space for ID's
-            if ((clPlatformIDs = (cl_platform_id*)malloc(num_platforms * sizeof(cl_platform_id))) == NULL) {
-                return -3000;
-            }
-
-            // get platform info for each platform and trap the NVIDIA platform if found
-            ciErrNum = clGetPlatformIDs (num_platforms, clPlatformIDs, NULL);
-            for(cl_uint i = 0; i < num_platforms; ++i) {
-                ciErrNum = clGetPlatformInfo (clPlatformIDs[i], CL_PLATFORM_NAME, 1024, &chBuffer, NULL);
-                if(ciErrNum == CL_SUCCESS) {
-                    if(strstr(chBuffer, "NVIDIA") != NULL) {
-                        *clSelectedPlatformID = clPlatformIDs[i];
-                        break;
-                    }
-                }
-            }
-
-            // default to zeroeth platform if NVIDIA not found
-            if(*clSelectedPlatformID == NULL) {
-                *clSelectedPlatformID = clPlatformIDs[0];
-            }
-
-            free(clPlatformIDs);
-        }
-    }
-    return CL_SUCCESS;
-}
 
 int main(int argc, char ** argv)
 {
@@ -234,10 +191,13 @@ int main(int argc, char ** argv)
     cl_platform_id platform = NULL;
     bool found = false;
     
-    for(cl_uint i = 0; i < num_platforms; ++i) {
+    for(cl_uint i = 0; i < num_platforms; ++i)
+    {
         error = clGetPlatformInfo (clPlatformIDs[i], CL_PLATFORM_NAME, 1024, &chBuffer, NULL);
-        if(error == CL_SUCCESS) {
-            if(strstr(chBuffer, "NVIDIA") != NULL) {
+        if(error == CL_SUCCESS)
+        {
+            if(strstr(chBuffer, "NVIDIA") != NULL)
+            {
                 platform = clPlatformIDs[i];
                 found = true;
                 break;
@@ -275,16 +235,17 @@ int main(int argc, char ** argv)
     
     context = clCreateContext(props, num_devices, devices, NULL, NULL, &error);
     CHECK_EQ(error, CL_SUCCESS) << print_cl_errstring(error) << std::endl;
-    free(devices);
     #endif
 
     size_t desc_size;
     clGetContextInfo(context , CL_CONTEXT_DEVICES, NULL, NULL, &desc_size);
 
-    cl_device_id *cldevices = (cl_device_id*) malloc(desc_size);
-    clGetContextInfo(context , CL_CONTEXT_DEVICES, desc_size, cldevices , NULL);
-
-    cl_command_queue queue = clCreateCommandQueue(context, cldevices[0], 0, &error);
+    #if __APPLE__
+        cl_device_id *devices = (cl_device_id*) malloc(desc_size);
+        error = clGetContextInfo(context , CL_CONTEXT_DEVICES, desc_size, devices , NULL);
+        CHECK_EQ(error, CL_SUCCESS) << print_cl_errstring(error) << std::endl;
+    #endif
+    cl_command_queue queue = clCreateCommandQueue(context, devices[0], 0, &error);
     CHECK_EQ(error, CL_SUCCESS) << print_cl_errstring(error) << std::endl;
 
     const char* kernelsource = readFile("../src/mandelbrot.cl").c_str();
@@ -292,12 +253,12 @@ int main(int argc, char ** argv)
     cl_program program = clCreateProgramWithSource(context, 1, &kernelsource, NULL, &error);
     CHECK_EQ(error, CL_SUCCESS) << print_cl_errstring(error) << std::endl;
 
-    error = clBuildProgram(program, 1, cldevices, NULL, NULL, NULL);
+    error = clBuildProgram(program, 1, devices, NULL, NULL, NULL);
 
     size_t sizeBuildLog = 2000;
     char* buildlog = (char*) malloc(sizeBuildLog);
     size_t copied = 0;
-    error = clGetProgramBuildInfo(program, cldevices[0], CL_PROGRAM_BUILD_LOG, sizeBuildLog, buildlog, &copied);
+    error = clGetProgramBuildInfo(program, devices[0], CL_PROGRAM_BUILD_LOG, sizeBuildLog, buildlog, &copied);
     CHECK_EQ(error, CL_SUCCESS) << print_cl_errstring(error) << std::endl;
 
     std::cout << "Build log: " << buildlog << std::endl;
@@ -326,5 +287,5 @@ int main(int argc, char ** argv)
     clReleaseMemObject(device_result);
     free(buildlog);
     free(result);
-    free(cldevices);
+    free(devices);
 }
