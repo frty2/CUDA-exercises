@@ -210,7 +210,6 @@ int main(int argc, char ** argv)
 
     cl_int error;
     cl_context context;
-    cl_device_id *devices;
     
     #if __APPLE__
         context = clCreateContextFromType(NULL, CL_DEVICE_TYPE_GPU, NULL, NULL, &error);
@@ -218,6 +217,8 @@ int main(int argc, char ** argv)
     #else
     cl_uint num_platforms;
     cl_platform_id* clPlatformIDs;
+    cl_device_id *devices;
+    
     error = clGetPlatformIDs (0, NULL, &num_platforms);
     CHECK_EQ(error, CL_SUCCESS) << print_cl_errstring(error) << std::endl;
     if(num_platforms == 0)
@@ -243,6 +244,9 @@ int main(int argc, char ** argv)
             }
         }
     }
+    
+    free(clPlatformIDs);
+    
     if(! found){
         LOG(ERROR) << "No nvidia plattform found" << std::endl;
         return -1;
@@ -271,16 +275,16 @@ int main(int argc, char ** argv)
     
     context = clCreateContext(props, num_devices, devices, NULL, NULL, &error);
     CHECK_EQ(error, CL_SUCCESS) << print_cl_errstring(error) << std::endl;
-    
+    free(devices);
     #endif
 
     size_t desc_size;
     clGetContextInfo(context , CL_CONTEXT_DEVICES, NULL, NULL, &desc_size);
 
-    devices = (cl_device_id*) malloc(desc_size);
-    clGetContextInfo(context , CL_CONTEXT_DEVICES, desc_size, devices , NULL);
+    cl_device_id *cldevices = (cl_device_id*) malloc(desc_size);
+    clGetContextInfo(context , CL_CONTEXT_DEVICES, desc_size, cldevices , NULL);
 
-    cl_command_queue queue = clCreateCommandQueue(context, devices[0], 0, &error);
+    cl_command_queue queue = clCreateCommandQueue(context, cldevices[0], 0, &error);
     CHECK_EQ(error, CL_SUCCESS) << print_cl_errstring(error) << std::endl;
 
     const char* kernelsource = readFile("../src/mandelbrot.cl").c_str();
@@ -288,12 +292,12 @@ int main(int argc, char ** argv)
     cl_program program = clCreateProgramWithSource(context, 1, &kernelsource, NULL, &error);
     CHECK_EQ(error, CL_SUCCESS) << print_cl_errstring(error) << std::endl;
 
-    error = clBuildProgram(program, 1, devices, NULL, NULL, NULL);
+    error = clBuildProgram(program, 1, cldevices, NULL, NULL, NULL);
 
     size_t sizeBuildLog = 2000;
     char* buildlog = (char*) malloc(sizeBuildLog);
     size_t copied = 0;
-    error = clGetProgramBuildInfo(program, devices[0], CL_PROGRAM_BUILD_LOG, sizeBuildLog, buildlog, &copied);
+    error = clGetProgramBuildInfo(program, cldevices[0], CL_PROGRAM_BUILD_LOG, sizeBuildLog, buildlog, &copied);
     CHECK_EQ(error, CL_SUCCESS) << print_cl_errstring(error) << std::endl;
 
     std::cout << "Build log: " << buildlog << std::endl;
@@ -321,11 +325,6 @@ int main(int argc, char ** argv)
     
     clReleaseMemObject(device_result);
     free(buildlog);
-    free(devices);
     free(result);
-    #if __APPLE__
-    #else
-        free(devices);
-        free(clPlatformIDs);
-    #endif
+    free(cldevices);
 }
