@@ -1,6 +1,6 @@
 Assigment 1:
 
-Please use a out of source build in a subfolder of the exercise7 dir, e.g. /src/bin. My program forces this by hardcoding the path to the kernel to "../src/mandelbrot.cl", so any other dir will not work.
+Please use a out of source build in a subfolder of the exercise7 dir, e.g. ../exercise7/bin. My program forces this by hardcoding the path of the kernel to "../src/mandelbrot.cl", so any other dir will not work.
 
 
 Assigment 2:
@@ -15,13 +15,15 @@ Input des Problems soll ein Text sowie ein regulärer Ausdruck sein. Der Text so
 
 Idee 3 (Will ich zusammen mit Daniel Kirbst umsetzen): Simulation von Tsunnami Wellen mittels Lösung von Flachwassergleichungen über finite Differenzen mit der Lax-Wendroff Methode.
 
-Wir haben uns für das Projekt von Prof. Zumbusch entschieden und ein wenig recherchiert und versucht ein Modell zu finden, welches auch Tsunami Wellen mit beschreiben kann. Dafür dienen Flachwassergleichungen. Diese können über finite Differenzen mit der Lax-Wendroff Methode gelösst werden. Wir haben dazu ein Paper (http://www.mathworks.com/moler/exm/chapters/water.pdf) gefunden, welches Prof. Zumbusch als guten Startpunkt ansieht. Die Tsunamiwelle wird dabei auf ein Gitter diskretisiert und jeder Punkt des Gitters beschreibt die Wellengeschwindigkeit in x und y Richtung sowie die Wasserhöhe h. Aus dieser Konfiguration kann mittels der Lax-Wendroff Methode die nächste Konfiguration errechnet werden und so das Höhenniveau jedes einzelnen Gitterpunktes zum nächsten Zeitpunkt errechnet werden. Wir planen ausserdem 2D Hindernisse einzufügen (Bspw. eine Schutzmauer) welche die Wellen reflektieren sollen.
+Wir haben uns für das Projekt von Prof. Zumbusch entschieden und ein wenig recherchiert und versucht ein Modell zu finden, welches auch Tsunamiwellen mit beschreiben kann. Dafür dienen Flachwassergleichungen. Diese können über finite Differenzen mit der Lax-Wendroff Methode gelösst werden. Wir haben dazu ein Paper (http://www.mathworks.com/moler/exm/chapters/water.pdf) gefunden, welches Prof. Zumbusch als guten Startpunkt ansieht. Die Tsunamiwelle wird dabei auf ein Gitter diskretisiert und jeder Punkt des Gitters beschreibt die Wellengeschwindigkeit in x und y Richtung sowie die Wasserhöhe h. Aus dieser Konfiguration kann mittels der Lax-Wendroff Methode die nächste Konfiguration errechnet werden und so das Höhenniveau jedes einzelnen Gitterpunktes zum nächsten Zeitpunkt errechnet werden. Wir planen ausserdem 2D Hindernisse einzufügen (Bspw. eine Schutzmauer) welche die Wellen reflektieren sollen.
 
-1) Die Gitterpunkte können unabhängig voneinander in einzelnen Threads berechnet werden, da sie nur lesend auf die Gitterpunkte in ihrer Nachbarschaft zugreifen.
+Die Visualisierung soll mittels OpenGL zunächst in 2D, später eventuell in 3D erfolgen.
 
-2) Wir haben eine Matlab-Implementierung (sequentiell) der Methode gefunden und planen einen zeitlichen Vergleich zwischen unserer und der Matlab Implementierung. Wir erhoffen die Berechnungen in Echtzeit durchführen zu können. Alternativ würden wir die erzeugten Bilder mittels ffmpeg zu einem Video zusammenpacken lassen.
+1) Die Gitterpunkte können unabhängig voneinander in einzelnen Threads berechnet werden, da sie nur lesend auf die Gitterpunkte in ihrer Nachbarschaft zugreifen. Da hohe Auflösungen des Gitters angestrebt werden sind genügend Threads vorhanden um die GPU auszulasten. Die einzelnen Threads dagegen haben nur relativ wenig Arbeit, sodass zu prüfen ist, ob nicht 1 Thread besser mehrere Gitterpunkte berechnen sollte.
 
-3) Die Berechnung nach der Lax-Wendroff erfolgt in 2 Schritt, wobei zunächst die Kanten des Gitters mit Werte beschrieben werden müssen. Dafür benötig es zumindest ein zweites Gitter und viele Zwischenvariablen / Register. Es ist damit zu rechnen, dass die Implementierung relativ viel Speicher benötigen wird.
+2) Wir haben eine Matlab-Implementierung (sequentiell) der Methode gefunden und planen einen zeitlichen Vergleich zwischen unserer und der Matlab Implementierung. Falls wir sehen das Matlab der begrenzende Faktor ist werden wir das Verfahren nochmals in C++ implementieren um eine Vergleichsmöglichkeit zu haben. Wir erhoffen die Berechnungen und Darstellung in Echtzeit durchführen zu können. Alternativ würden wir die erzeugten Bilder mittels ffmpeg zu einem Video zusammenpacken lassen.
+
+3) Die Berechnung nach der Lax-Wendroff erfolgt in 2 Schritt, wobei zunächst die Kanten des Gitters mit Werte beschrieben werden müssen. Dafür benötigt es zumindest ein zweites Gitter und viele Zwischenvariablen / Register. Es ist damit zu rechnen, dass die Implementierung relativ viel Speicher benötigen wird.
 
 Ferner wird es ein Problem werden die Daten aus einem Schritt schnell genug an die Ausgabe weiterzuleiten. Eventuell muss alles direkt auf dem Device geschehen was für einen ordentliche Ausgabe schwierig wird.
 
