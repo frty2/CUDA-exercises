@@ -159,6 +159,50 @@ char *print_cl_errstring(cl_int err)
     }
 }
 
+//include <cstring>, etc.
+cl_int getPlatformID(cl_platform_id* clSelectedPlatformID) {
+    char chBuffer[1024];
+    cl_uint num_platforms;
+    cl_platform_id* clPlatformIDs;
+    cl_int ciErrNum;
+    *clSelectedPlatformID = NULL;
+
+    // Get OpenCL platform count
+    ciErrNum = clGetPlatformIDs (0, NULL, &num_platforms);
+    if (ciErrNum != CL_SUCCESS) {
+        return -1000;
+    } else {
+        if(num_platforms == 0) {
+            return -2000;
+        } else {
+            // if there's a platform or more, make space for ID's
+            if ((clPlatformIDs = (cl_platform_id*)malloc(num_platforms * sizeof(cl_platform_id))) == NULL) {
+                return -3000;
+            }
+
+            // get platform info for each platform and trap the NVIDIA platform if found
+            ciErrNum = clGetPlatformIDs (num_platforms, clPlatformIDs, NULL);
+            for(cl_uint i = 0; i < num_platforms; ++i) {
+                ciErrNum = clGetPlatformInfo (clPlatformIDs[i], CL_PLATFORM_NAME, 1024, &chBuffer, NULL);
+                if(ciErrNum == CL_SUCCESS) {
+                    if(strstr(chBuffer, "NVIDIA") != NULL) {
+                        *clSelectedPlatformID = clPlatformIDs[i];
+                        break;
+                    }
+                }
+            }
+
+            // default to zeroeth platform if NVIDIA not found
+            if(*clSelectedPlatformID == NULL) {
+                *clSelectedPlatformID = clPlatformIDs[0];
+            }
+
+            free(clPlatformIDs);
+        }
+    }
+    return CL_SUCCESS;
+}
+
 int main(int argc, char ** argv)
 {
     google::InitGoogleLogging(argv[0]);
@@ -166,13 +210,68 @@ int main(int argc, char ** argv)
 
     cl_int error;
     cl_context context;
-    context = clCreateContextFromType(NULL, CL_DEVICE_TYPE_GPU, NULL, NULL, &error);
+    
+    cl_uint num_platforms;
+    cl_platform_id* clPlatformIDs;
+    error = clGetPlatformIDs (0, NULL, &num_platforms);
+    CHECK_EQ(error, CL_SUCCESS) << print_cl_errstring(error) << std::endl;
+    if(num_platforms == 0)
+    {
+        LOG(ERROR) << "No platforms found" << std::endl;
+        return -1;
+    }
+    clPlatformIDs = (cl_platform_id*) malloc(num_platforms*sizeof(cl_platform_id));
+    CHECK_NOTNULL(clPlatformIDs);
+    
+    error = clGetPlatformIDs (num_platforms, clPlatformIDs, NULL);
+    char chBuffer[1024];
+    cl_platform_id platform = NULL;
+    bool found = false;
+    
+    for(cl_uint i = 0; i < num_platforms; ++i) {
+        error = clGetPlatformInfo (clPlatformIDs[i], CL_PLATFORM_NAME, 1024, &chBuffer, NULL);
+        if(error == CL_SUCCESS) {
+            if(strstr(chBuffer, "NVIDIA") != NULL) {
+                platform = clPlatformIDs[i];
+                found = true;
+                break;
+            }
+        }
+    }
+    if(! found){
+        LOG(ERROR) << "No nvidia plattform found" << std::endl;
+        return -1;
+    }
+    
+    cl_device_id *devices;
+    cl_uint num_devices;
+    
+    error = clGetDeviceIDs(platform, CL_DEVICE_TYPE_GPU, 0, NULL, &num_devices);
+    CHECK_EQ(error, CL_SUCCESS) << print_cl_errstring(error) << std::endl;
+    if(num_devices == 0)
+    {
+        LOG(ERROR) << "No devices found" << std::endl;
+        return -1;
+    }
+    devices = (cl_device_id*) malloc(num_devices*sizeof(cl_device_id));
+    CHECK_NOTNULL(devices);
+    
+    error = clGetDeviceIDs(platform, CL_DEVICE_TYPE_GPU, num_devices, devices, NULL);
+    CHECK_EQ(error, CL_SUCCESS) << print_cl_errstring(error) << std::endl;
+    
+    cl_context_properties props[3];
+    props[0] = (cl_context_properties)CL_CONTEXT_PLATFORM;
+    props[1] = (cl_context_properties)platform;
+    props[2] = (cl_context_properties)0;
+    
+    
+    context = clCreateContext(props, num_devices, devices, NULL, NULL, &error);
     CHECK_EQ(error, CL_SUCCESS) << print_cl_errstring(error) << std::endl;
 
     size_t desc_size;
     clGetContextInfo(context , CL_CONTEXT_DEVICES, NULL, NULL, &desc_size);
 
-    cl_device_id* devices = (cl_device_id*) malloc(desc_size);
+    devices = (cl_device_id*) malloc(desc_size);
     clGetContextInfo(context , CL_CONTEXT_DEVICES, desc_size, devices , NULL);
 
     cl_command_queue queue = clCreateCommandQueue(context, devices[0], 0, &error);
@@ -218,4 +317,6 @@ int main(int argc, char ** argv)
     free(buildlog);
     free(devices);
     free(result);
+    free(devices);
+    free(clPlatformIDs);
 }
