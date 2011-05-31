@@ -60,7 +60,7 @@ set(GPU_SRC
     src/postprocessing.cu)
 
 #cuda version
-cuda_add_executable(rtgpu ${GPU_SRC} OPTIONS -D__GPUVERSION__ --ptxas-options=-v --maxrregcount 48 -arch=sm_12 -use_fast_math)
+cuda_add_executable(rtgpu ${GPU_SRC} OPTIONS -D__GPUVERSION__ --ptxas-options=-v --maxrregcount 48 -arch=sm_12)
 set_target_properties(rtgpu PROPERTIES COMPILE_FLAGS -D__GPUVERSION__)
 set_target_properties(rtgpu PROPERTIES LINKER_LANGUAGE C)
 target_link_libraries(rtgpu ${GLOG_LIBRARY})

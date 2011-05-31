@@ -7,7 +7,7 @@
 #include "raytracer.h"
 
 #define EPSILON1 0.0001f
-#define EPSILON2 0.00000001f
+#define EPSILON2 0.00001f
 #define PI 3.14159265358f
 
 #define chunksizex 20
@@ -161,7 +161,7 @@ __host__ __device__ bool fastintersect(const ray& r, const triangle& tri, point&
 
     t = dot(edge2, qvec) * inv_det;
     intersection = r.location + t * r.direction;
-    return t > EPSILON1;
+    return t >= -EPSILON2;
 }
 
 __device__ void initial_ray(const camera& c, const point& upperleft, int x, int y, point& xgap, point& ygap, ray& r)
@@ -178,7 +178,7 @@ __device__ void initial_ray(const camera& c, const point& upperleft, int x, int 
 #if __GPUVERSION__
 __device__
 #endif
-bool shootrayshared(const ray& r, int tricount, triangle *triangles, triangle& nearest, point& intersec, int threadid)
+bool shootrayshared(const ray& r, int tricount, triangle *triangles, triangle& nearest, point& intersec, int threadid, int &ignore)
 {
     float min_distance = FLT_MAX;
     bool hit;
@@ -213,6 +213,7 @@ bool shootrayshared(const ray& r, int tricount, triangle *triangles, triangle& n
                 min_distance = distance;
                 nearest = t;
                 intersec = intersection;
+                ignore = tc;
             }
         }
 
@@ -229,13 +230,14 @@ bool shootrayshared(const ray& r, int tricount, triangle *triangles, triangle& n
             min_distance = distance;
             nearest = t;
             intersec = intersection;
+            ignore = i;
         }
     }
 #endif
     return min_distance != FLT_MAX;
 }
 
-__device__ __host__ bool shootray(const ray& r, int tricount, triangle *triangles, triangle& nearest, point& intersec)
+__device__ __host__ bool shootray(const ray& r, int tricount, triangle *triangles, triangle& nearest, point& intersec, int ignore = -1)
 {
     float min_distance = FLT_MAX;
     bool hit;
@@ -248,7 +250,7 @@ __device__ __host__ bool shootray(const ray& r, int tricount, triangle *triangle
         //hit = intersect(r, t, intersection);
         hit = fastintersect(r, t, intersection);
         distance = norm(intersection - r.location);
-        if(hit && distance < min_distance)
+        if(hit && distance < min_distance && i != ignore)
         {
             min_distance = distance;
             nearest = t;
@@ -263,7 +265,7 @@ __device__ __host__ bool shootray(const ray& r, int tricount, triangle *triangle
 #if __GPUVERSION__
 __device__
 #endif
-rgb lighten(const triangle& nearest, const point& intersection, int lightcount, point *lights, int tricount, triangle *triangles)
+rgb lighten(const triangle& nearest, const point& intersection, int lightcount, point *lights, int tricount, triangle *triangles, int ignore)
 {
     float lightintense = 0.0f;
 
@@ -282,7 +284,7 @@ rgb lighten(const triangle& nearest, const point& intersection, int lightcount, 
         lightray.direction = light - intersection;
         normalize(lightray.direction);
 
-        if(!shootray(lightray, tricount, triangles, lightnearest, lightintersect) ||
+        if(!shootray(lightray, tricount, triangles, lightnearest, lightintersect, ignore) ||
                 (norm(lightintersect - intersection) > norm(light - intersection)))
         {
             float cosangle = anglebetween(lightray.direction, normal);
@@ -312,17 +314,18 @@ __global__ void render_pixel(rtconfig config, triangle *triangles, point *lights
     //find nearest intersect triangle
     point intersec;
     triangle nearest;
+    int ignore;
     if(x < config.width && y < config.height)
     {
         resultpixels[y * config.width + x] = config.background;
     }
 
-    if(shootrayshared(r, config.tricount, triangles, nearest, intersec, threadid))
+    if(shootrayshared(r, config.tricount, triangles, nearest, intersec, threadid, ignore))
     {
         if(x < config.width && y < config.height)
         {
             //set pixel color to color of nearest intersecting triangle
-            resultpixels[y * config.width + x] = lighten(nearest, intersec, config.lightcount, lights, config.tricount, triangles);
+            resultpixels[y * config.width + x] = lighten(nearest, intersec, config.lightcount, lights, config.tricount, triangles, ignore);
         }
     }
 }
