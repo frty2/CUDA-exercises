@@ -1,0 +1,30 @@
+Assigment 1:
+
+Please use a out of source build in a subfolder of the exercise7 dir, e.g. /src/bin. My program forces this by hardcoding the path to the kernel to "../src/mandelbrot.cl", so any other dir will not work.
+
+
+Assigment 2:
+
+Idee 1: N-Körper Simulation mit "neuem" Algorithmus
+
+Der Algorithmus soll die gegeben Körper vor der eigentlichen Rechnung sortieren und dann die Körper z.B. in Quartile in jeder der 3 Dimensionen aufteilen, sodass in jedem Block (fast) genauso viele Körper sich befinden. Anschließen wird so ein Block auf einen ThreadBlock abgebildet und die Gravitation zwischen den Planeten berechnet. Ein Planet ist dabei auf einem Thread abgebildet und rechnet die Kraftwirkung der anderen Planeten aus dem selben Block auf sich aus. Der Zugriff auf die Daten der Planeten im selben Block kann in shared-memory ausgelagert werden. Anschließend werden nur noch die Massemittelpunkte und die Resultatkraft der Blöcke mit den einzelnen Planeten verrechnet und die neue Position der Planeten anhand der Beschleunigung bestimmt. Bisherige Algorithmen teilen die Planeten nicht gleichmässig auf, sondern teilen den Raum, sodass nicht sicher gestellt ist, dass die Threadblocks alle gleich ausgelastet sind. Mein Algorithmus sollte das Problem in O(n*log n) lösen.
+
+Idee 2: String nach Teilstring anhand von regulären Ausdrücken durchsuchen
+
+Input des Problems soll ein Text sowie ein regulärer Ausdruck sein. Der Text soll nach stellen durchsucht werden, welche dem regulären Ausdruck entsprechen. Dazu wird der reguläre Ausdruck in einen endlichen Automaten überführt welcher durch einen generierten OpenCL Kernel repräsentiert wird. Der Thread i beginnt dann den Text ab Stelle i darauf zu prüfen ob der Text von Stelle i an vom Automaten akzeptiert wird. Sobald ein Endzustand erreicht wird, werden die Indizes des Treffers als Resultat gespeichert. Der Algorithmus kann z. B. dazu genutzt werden um schnell in einer Menge von HTML Dokumenten Links oder Email Adresse zu finden. Problem könnte die große Datenmenge sein, die auf das Device geladen werden muss.
+
+Idee 3 (Will ich zusammen mit Daniel Kirbst umsetzen): Simulation von Tsunnami Wellen mittels Lösung von Flachwassergleichungen über finite Differenzen mit der Lax-Wendroff Methode.
+
+Wir haben uns für das Projekt von Prof. Zumbusch entschieden und ein wenig recherchiert und versucht ein Modell zu finden, welches auch Tsunami Wellen mit beschreiben kann. Dafür dienen Flachwassergleichungen. Diese können über finite Differenzen mit der Lax-Wendroff Methode gelösst werden. Wir haben dazu ein Paper (http://www.mathworks.com/moler/exm/chapters/water.pdf) gefunden, welches Prof. Zumbusch als guten Startpunkt ansieht. Die Tsunamiwelle wird dabei auf ein Gitter diskretisiert und jeder Punkt des Gitters beschreibt die Wellengeschwindigkeit in x und y Richtung sowie die Wasserhöhe h. Aus dieser Konfiguration kann mittels der Lax-Wendroff Methode die nächste Konfiguration errechnet werden und so das Höhenniveau jedes einzelnen Gitterpunktes zum nächsten Zeitpunkt errechnet werden. Wir planen ausserdem 2D Hindernisse einzufügen (Bspw. eine Schutzmauer) welche die Wellen reflektieren sollen.
+
+1) Die Gitterpunkte können unabhängig voneinander in einzelnen Threads berechnet werden, da sie nur lesend auf die Gitterpunkte in ihrer Nachbarschaft zugreifen.
+
+2) Wir haben eine Matlab-Implementierung (sequentiell) der Methode gefunden und planen einen zeitlichen Vergleich zwischen unserer und der Matlab Implementierung. Wir erhoffen die Berechnungen in Echtzeit durchführen zu können. Alternativ würden wir die erzeugten Bilder mittels ffmpeg zu einem Video zusammenpacken lassen.
+
+3) Die Berechnung nach der Lax-Wendroff erfolgt in 2 Schritt, wobei zunächst die Kanten des Gitters mit Werte beschrieben werden müssen. Dafür benötig es zumindest ein zweites Gitter und viele Zwischenvariablen / Register. Es ist damit zu rechnen, dass die Implementierung relativ viel Speicher benötigen wird.
+
+Ferner wird es ein Problem werden die Daten aus einem Schritt schnell genug an die Ausgabe weiterzuleiten. Eventuell muss alles direkt auf dem Device geschehen was für einen ordentliche Ausgabe schwierig wird.
+
+4) http://www.mathworks.com/moler/exm/chapters/water.pdf und die von Prof. Zumbusch angebotene Hilfe.
+
+Weiter wollen wir die Hindernis-Map per Bild einlesen (ppm) und das Ergebnis als Bildfolge (ppm) oder per OpenGL bzw. per ffmpeg als Video (zusammenpacken der Einzelbilder) visualisieren. Ferner überlegen wir einen Interaktiven Modus zu bauen, in dem ein Mausklick eine neue Welle startet bzw. ein Szenenformat zu definieren, welches eine Startkonfiguration der Wellensituation erlaubt.
