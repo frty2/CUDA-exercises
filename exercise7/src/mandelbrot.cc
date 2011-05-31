@@ -210,7 +210,12 @@ int main(int argc, char ** argv)
 
     cl_int error;
     cl_context context;
+    cl_device_id *devices;
     
+    #if __APPLE__
+        context = clCreateContextFromType(NULL, CL_DEVICE_TYPE_GPU, NULL, NULL, &error);
+        CHECK_EQ(error, CL_SUCCESS) << print_cl_errstring(error) << std::endl;
+    #else
     cl_uint num_platforms;
     cl_platform_id* clPlatformIDs;
     error = clGetPlatformIDs (0, NULL, &num_platforms);
@@ -243,7 +248,6 @@ int main(int argc, char ** argv)
         return -1;
     }
     
-    cl_device_id *devices;
     cl_uint num_devices;
     
     error = clGetDeviceIDs(platform, CL_DEVICE_TYPE_GPU, 0, NULL, &num_devices);
@@ -267,6 +271,8 @@ int main(int argc, char ** argv)
     
     context = clCreateContext(props, num_devices, devices, NULL, NULL, &error);
     CHECK_EQ(error, CL_SUCCESS) << print_cl_errstring(error) << std::endl;
+    
+    #endif
 
     size_t desc_size;
     clGetContextInfo(context , CL_CONTEXT_DEVICES, NULL, NULL, &desc_size);
@@ -317,6 +323,9 @@ int main(int argc, char ** argv)
     free(buildlog);
     free(devices);
     free(result);
-    free(devices);
-    free(clPlatformIDs);
+    #if __APPLE__
+    #else
+        free(devices);
+        free(clPlatformIDs);
+    #endif
 }
