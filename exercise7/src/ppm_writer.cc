@@ -3,7 +3,7 @@
 #include <iostream>
 #include <fstream>
 
-void write_ppm(rgb* pixelarray, int width, int height, char* filename)
+void write_ppm(rgb* pixelarray, int width, int height, const char* filename)
 {
     std::ofstream file (filename);
     file << "P3" << std::endl;

@@ -49,7 +49,8 @@ void save(char *result, int argc, char ** argv)
             image[y * width + x] = color;
         }
     }
-    write_ppm(image, width, height, "mandelbrot.ppm");
+    const char* filename = "mandelbrot.ppm";
+    write_ppm(image, width, height, filename);
     //displayimage(argc, argv, image, width, height);
     free(image);
 }
