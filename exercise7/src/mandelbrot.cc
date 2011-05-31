@@ -12,6 +12,7 @@
 
 #include "types.h"
 #include "mainwindow.h"
+#include "ppm_writer.h"
 
 #define width 512
 #define height 512
@@ -48,7 +49,8 @@ void save(char *result, int argc, char ** argv)
             image[y * width + x] = color;
         }
     }
-    displayimage(argc, argv, image, width, height);
+    write_ppm(image, width, height, "mandelbrot.ppm");
+    //displayimage(argc, argv, image, width, height);
     free(image);
 }
 

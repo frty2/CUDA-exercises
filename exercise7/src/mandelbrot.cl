@@ -5,8 +5,8 @@ __kernel void mandelbrot (__global char* output)
     int threadx = get_global_id(0);
     int thready = get_global_id(1);
     
-    float cx = (threadx * 3.0f / width ) - 2.0f;
-    float cy = (thready * 3.0f / height ) - 1.5f;
+    float cx = (threadx * 4.0f / width ) - 2.0f;
+    float cy = (thready * 4.0f / height ) - 2.0f;
     
     float x = 0.0f;
     float y = 0.0f;
